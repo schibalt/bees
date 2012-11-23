@@ -29,6 +29,7 @@ private:
     int sites;
     int eliteSites;
     QSize fieldDims;
+    void draw();
 
 private slots:
     void on_initialPop_valueChanged(int );

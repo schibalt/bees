@@ -6,6 +6,7 @@
 #include <sstream>
 #include <QtConcurrentRun>
 #include "algorithmmodel.h"
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -70,11 +71,61 @@ bool MainWindow::setBackground()
 
 void MainWindow::resizeEvent(QResizeEvent* event){
     setBackground();
+    QFuture<void> future2 = QtConcurrent::run(this, &MainWindow::draw);
+    future2.waitForFinished();
 }
 
 void MainWindow::on_pushButton_clicked()
 {
-    QFuture<void> future = QtConcurrent::run(beeAlgModel, &AlgorithmModel::genesis, initialPop, fieldDims);
+    //beeAlgModel.genesis(initialPop, fieldDims);
+    QFuture<vector<Bee > > future = QtConcurrent::run(beeAlgModel, &AlgorithmModel::genesis, initialPop, fieldDims, false);
+    future.waitForFinished();
+    beeAlgModel.setBees(future.result());
+    QFuture<void> future2 = QtConcurrent::run(this, &MainWindow::draw);
+    future2.waitForFinished();
+    
+}
+
+void MainWindow::draw()
+{
+    // the items (lines and points) in the graphicsview
+    QList<QGraphicsItem*> list = (*scene).items();
+
+    // delete everything.  this is a new case.
+    QList<QGraphicsItem*>::Iterator it = list.begin();
+    for (; it != list.end(); ++it)
+    {
+        if (*it)
+        {
+            (*scene).removeItem(*it);
+            delete *it;
+        }
+    }
+
+    setBackground();
+
+    vector<Bee > bees = beeAlgModel.getBees();
+    foreach(Bee bee, bees)
+    {
+        cout << "drawing a bee" << endl;
+        QImage image;
+        image.load("..\\beesmall.png");
+        QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+
+        double xRatio = (double) bee.getPoint().x() / fieldDims.width();
+        double yRatio = (double) bee.getPoint().y() / fieldDims.height();
+
+        double xPos = xRatio * (double) ui->graphicsView->width();
+        double yPos = yRatio * (double) ui->graphicsView->height();
+
+        if(xRatio < 0 || yRatio < 0 || xRatio >= 1 || yRatio >= 1)
+            cout << "ratios wrong" << endl;
+
+        //cout << "graphicsview is " << ui->graphicsView->width() << ", " << ui->graphicsView->height() << endl;
+        cout << "pos is " << xPos << ", " << yPos << endl;
+        Qgpmi->setPos(xPos, yPos);
+        (*scene).addItem(Qgpmi);
+    }
 }
 
 void MainWindow::on_genCap_valueChanged(int newGenCap)

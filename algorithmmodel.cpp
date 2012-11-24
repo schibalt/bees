@@ -1,7 +1,5 @@
-#include <time.h>
-#include <QFuture>
+
 #include "algorithmmodel.h"
-#include <iostream>
 
 AlgorithmModel::AlgorithmModel()
 {
@@ -20,17 +18,24 @@ vector<Bee > AlgorithmModel::genesis(const int population, const QSize fieldDims
 
     for (int i = 0; i < population; i++)
     {
-        unsigned int xPos = rand() % fieldDims.width();
-        unsigned int yPos = rand() % fieldDims.height();
-
-        Bee newBee;
-        newBee.setPoint(QPoint(xPos, yPos));
+        Bee newBee(fieldDims);
+        //newBee.setPoint(QPoint(xPos, yPos));
         //cout << "making bee " << i << endl;
 
         bees.push_back(newBee);
     }
 
     return bees;
+}
+
+void AlgorithmModel::setHive(const QSize fieldDims)
+{
+    hive = Hive(fieldDims);
+}
+
+Hive AlgorithmModel::getHive()
+{
+    return hive;
 }
 
 void AlgorithmModel::setBees(vector<Bee > bees)

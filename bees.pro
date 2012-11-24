@@ -6,8 +6,10 @@ TEMPLATE = app
 SOURCES += main.cpp \
     mainwindow.cpp \
     bee.cpp \
-    algorithmmodel.cpp
+    algorithmmodel.cpp \
+    hive.cpp
 HEADERS += mainwindow.h \
     bee.h \
-    algorithmmodel.h
+    algorithmmodel.h \
+    hive.h
 FORMS += mainwindow.ui

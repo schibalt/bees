@@ -1,12 +1,5 @@
-#include <QFuture>
+
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QGraphicsPixmapItem>
-#include <iostream>
-#include <sstream>
-#include <QtConcurrentRun>
-#include "algorithmmodel.h"
-#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -81,9 +74,9 @@ void MainWindow::on_pushButton_clicked()
     QFuture<vector<Bee > > future = QtConcurrent::run(beeAlgModel, &AlgorithmModel::genesis, initialPop, fieldDims, false);
     future.waitForFinished();
     beeAlgModel.setBees(future.result());
+    beeAlgModel.setHive(fieldDims);
     QFuture<void> future2 = QtConcurrent::run(this, &MainWindow::draw);
     future2.waitForFinished();
-    
 }
 
 void MainWindow::draw()
@@ -107,7 +100,7 @@ void MainWindow::draw()
     vector<Bee > bees = beeAlgModel.getBees();
     foreach(Bee bee, bees)
     {
-        cout << "drawing a bee" << endl;
+        //cout << "drawing a bee" << endl;
         QImage image;
         image.load("..\\beesmall.png");
         QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
@@ -115,17 +108,29 @@ void MainWindow::draw()
         double xRatio = (double) bee.getPoint().x() / fieldDims.width();
         double yRatio = (double) bee.getPoint().y() / fieldDims.height();
 
-        double xPos = xRatio * (double) ui->graphicsView->width();
-        double yPos = yRatio * (double) ui->graphicsView->height();
+        int xPos = xRatio * ui->graphicsView->width();
+        int yPos = yRatio * ui->graphicsView->height();
 
         if(xRatio < 0 || yRatio < 0 || xRatio >= 1 || yRatio >= 1)
             cout << "ratios wrong" << endl;
 
         //cout << "graphicsview is " << ui->graphicsView->width() << ", " << ui->graphicsView->height() << endl;
-        cout << "pos is " << xPos << ", " << yPos << endl;
+        //cout << "pos is " << xPos << ", " << yPos << endl;
         Qgpmi->setPos(xPos, yPos);
         (*scene).addItem(Qgpmi);
     }
+    Hive hive = beeAlgModel.getHive();
+    double xRatio = (double) hive.getPoint().x() / fieldDims.width();
+    double yRatio = (double) hive.getPoint().y() / fieldDims.height();
+    int xPos = xRatio * ui->graphicsView->width();
+    int yPos = yRatio * ui->graphicsView->height();
+    QImage image;
+    image.load("..\\Bee_Hive.png");
+    //image = image.scaled(213, 300);
+
+    QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+    Qgpmi->setPos(xPos, yPos);
+    (*scene).addItem(Qgpmi);
 }
 
 void MainWindow::on_genCap_valueChanged(int newGenCap)

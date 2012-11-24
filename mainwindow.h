@@ -4,6 +4,13 @@
 #include "algorithmmodel.h"
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QFuture>
+#include <QGraphicsPixmapItem>
+#include <QtConcurrentRun>
+#include "ui_mainwindow.h"
+#include <iostream>
+#include <sstream>
+#include <algorithm>
 
 namespace Ui {
     class MainWindow;

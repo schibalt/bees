@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Fri Nov 23 21:18:49 2012
+** Created: Sat Nov 24 21:19:47 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -137,7 +137,8 @@ public:
         fieldWidth->setMaximumSize(QSize(50, 16777215));
         fieldWidth->setMinimum(10);
         fieldWidth->setMaximum(1000);
-        fieldWidth->setValue(400);
+        fieldWidth->setSingleStep(9);
+        fieldWidth->setValue(396);
 
         verticalLayout->addWidget(fieldWidth);
 
@@ -152,7 +153,8 @@ public:
         fieldHeight->setMaximumSize(QSize(50, 16777215));
         fieldHeight->setMinimum(10);
         fieldHeight->setMaximum(1000);
-        fieldHeight->setValue(300);
+        fieldHeight->setSingleStep(9);
+        fieldHeight->setValue(297);
 
         verticalLayout->addWidget(fieldHeight);
 

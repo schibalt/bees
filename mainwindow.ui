@@ -146,8 +146,11 @@
          <property name="maximum">
           <number>1000</number>
          </property>
+         <property name="singleStep">
+          <number>9</number>
+         </property>
          <property name="value">
-          <number>400</number>
+          <number>396</number>
          </property>
         </widget>
        </item>
@@ -178,8 +181,11 @@
          <property name="maximum">
           <number>1000</number>
          </property>
+         <property name="singleStep">
+          <number>9</number>
+         </property>
          <property name="value">
-          <number>300</number>
+          <number>297</number>
          </property>
         </widget>
        </item>

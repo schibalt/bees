@@ -7,9 +7,12 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     bee.cpp \
     algorithmmodel.cpp \
-    hive.cpp
+    hive.cpp \
+    normal/normal.cpp
 HEADERS += mainwindow.h \
     bee.h \
     algorithmmodel.h \
-    hive.h
+    hive.h \
+    normal/normal.hpp
 FORMS += mainwindow.ui
+INCLUDEPATH += normal

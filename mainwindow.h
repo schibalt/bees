@@ -2,15 +2,19 @@
 #define MAINWINDOW_H
 
 #include "algorithmmodel.h"
+#include "ui_mainwindow.h"
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+
+#include <QDir>
+#include <QImageWriter>
+#include <QImage>
 #include <QMainWindow>
 #include <QGraphicsScene>
 #include <QFuture>
 #include <QGraphicsPixmapItem>
 #include <QtConcurrentRun>
-#include "ui_mainwindow.h"
-#include <iostream>
-#include <sstream>
-#include <algorithm>
 
 namespace Ui {
     class MainWindow;
@@ -27,18 +31,28 @@ protected:
     void changeEvent(QEvent *e);
 
 private:
-    Ui::MainWindow *ui;
-    QGraphicsScene *scene;
+    Ui::MainWindow *_ui;
+    QGraphicsScene *_scene;
     void resizeEvent(QResizeEvent* event);
-    AlgorithmModel beeAlgModel;
-    int initialPop;
-    int genCap;
-    int sites;
-    int eliteSites;
-    QSize fieldDims;
+    AlgorithmModel _beeAlgModel;
+    int _initialPop;
+    int _genCap;
+    int _sites;
+    int _eliteSites;
+    QSize _fieldDims;
     void draw();
+    void generateContourMap(double** );
+    int _graduation;
+    int _upperBound;
+    int _lowerBound;
+    const static int _GRADES = 10;
+    const static int _SHEKEL_DIMENSION = 10;
+    QRgb getColor(double );
+    void setGraduation(double** );
 
 private slots:
+    void on_fieldHeight_valueChanged(int );
+    void on_fieldWidth_valueChanged(int );
     void on_initialPop_valueChanged(int );
     void on_genCap_valueChanged(int );
     void on_pushButton_clicked();

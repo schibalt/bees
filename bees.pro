@@ -8,11 +8,13 @@ SOURCES += main.cpp \
     bee.cpp \
     algorithmmodel.cpp \
     hive.cpp \
-    normal/normal.cpp
+    normal/normal.cpp \
+    simulateseason.cpp
 HEADERS += mainwindow.h \
     bee.h \
     algorithmmodel.h \
     hive.h \
-    normal/normal.hpp
+    normal/normal.hpp \
+    simulateseason.h
 FORMS += mainwindow.ui
 INCLUDEPATH += normal

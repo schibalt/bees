@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sat Nov 24 21:19:47 2012
+** Created: Mon Nov 26 21:38:20 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -14,6 +14,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
+#include <QtGui/QCheckBox>
 #include <QtGui/QGraphicsView>
 #include <QtGui/QGridLayout>
 #include <QtGui/QGroupBox>
@@ -49,7 +50,9 @@ public:
     QSpinBox *fieldWidth;
     QLabel *label_6;
     QSpinBox *fieldHeight;
+    QCheckBox *checkBox;
     QPushButton *pushButton;
+    QPushButton *stepButton;
     QGraphicsView *graphicsView;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
@@ -136,9 +139,9 @@ public:
         fieldWidth->setObjectName(QString::fromUtf8("fieldWidth"));
         fieldWidth->setMaximumSize(QSize(50, 16777215));
         fieldWidth->setMinimum(10);
-        fieldWidth->setMaximum(1000);
-        fieldWidth->setSingleStep(9);
-        fieldWidth->setValue(396);
+        fieldWidth->setMaximum(2000);
+        fieldWidth->setSingleStep(10);
+        fieldWidth->setValue(500);
 
         verticalLayout->addWidget(fieldWidth);
 
@@ -154,14 +157,26 @@ public:
         fieldHeight->setMinimum(10);
         fieldHeight->setMaximum(1000);
         fieldHeight->setSingleStep(9);
-        fieldHeight->setValue(297);
+        fieldHeight->setValue(500);
 
         verticalLayout->addWidget(fieldHeight);
+
+        checkBox = new QCheckBox(groupBox);
+        checkBox->setObjectName(QString::fromUtf8("checkBox"));
+        checkBox->setChecked(true);
+
+        verticalLayout->addWidget(checkBox);
 
         pushButton = new QPushButton(groupBox);
         pushButton->setObjectName(QString::fromUtf8("pushButton"));
 
         verticalLayout->addWidget(pushButton);
+
+        stepButton = new QPushButton(groupBox);
+        stepButton->setObjectName(QString::fromUtf8("stepButton"));
+        stepButton->setEnabled(false);
+
+        verticalLayout->addWidget(stepButton);
 
 
         gridLayout->addWidget(groupBox, 0, 0, 1, 1);
@@ -198,7 +213,9 @@ public:
         label->setText(QApplication::translate("MainWindow", "Initial population", 0, QApplication::UnicodeUTF8));
         label_5->setText(QApplication::translate("MainWindow", "Field width", 0, QApplication::UnicodeUTF8));
         label_6->setText(QApplication::translate("MainWindow", "Field height", 0, QApplication::UnicodeUTF8));
-        pushButton->setText(QApplication::translate("MainWindow", "Genesis", 0, QApplication::UnicodeUTF8));
+        checkBox->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
+        pushButton->setText(QApplication::translate("MainWindow", "Begin", 0, QApplication::UnicodeUTF8));
+        stepButton->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

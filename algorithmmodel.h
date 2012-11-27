@@ -32,6 +32,7 @@ private:
     const static int _SHEKEL_DIMENSION = 10;
     const double** _field;
     QSize _fieldDims;
+
 };
 
 #endif // ALGORITHMMODEL_H

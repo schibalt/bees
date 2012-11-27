@@ -38,7 +38,7 @@ switch nargin
         
     case 0
         % plot function
-        x = 1:10;
+        x = 1:20;
         N = length(x);
         F = zeros(N);
         
@@ -50,11 +50,11 @@ switch nargin
         
         figure;
         
-        contour3(x,x,F,10);
+        contour2(x,x,F,10);
         title('Contour plot of Shekel''s Foxholes');
         %new stuff...
         surf(x,x,F);
-        shading interp
+        %shading interp
         %new stuff/
     otherwise
         error('Wrong number of input arguments.');

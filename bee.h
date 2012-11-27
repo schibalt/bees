@@ -16,9 +16,11 @@ public:
     const QPoint getPoint();
     void setPointFieldRandom(const QPoint, const QSize );
     enum role { SCOUT, RECRUIT, ELITE };
+    void setFitness(double);
 
 private:
     QPoint point;
+    double fitness;
 };
 
 #endif // BEE_H

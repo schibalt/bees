@@ -6,6 +6,7 @@ MainWindow::MainWindow(QWidget* parent) :
     _ui(new Ui::MainWindow)
 {
     _ui->setupUi(this);
+    _ui->stepButton->installEventFilter(this);
     _scene = new QGraphicsScene(this);
     _ui->graphicsView->setScene(_scene);
     _genCap = _ui->genCap->value();
@@ -32,6 +33,17 @@ void MainWindow::changeEvent(QEvent* e)
             break;
     }
 }
+
+bool MainWindow::eventFilter(QObject* object, QEvent* event)
+{
+    if (event->type() == QEvent::MouseButtonPress)
+    {
+        // Turn timer back on
+        cout << "change algorithm state" << endl;
+    }
+    return false;
+}
+
 bool MainWindow::setBackground()
 {
     // the items (lines and points) in the graphicsview
@@ -72,6 +84,9 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_pushButton_clicked()
 {
+    _ui->pushButton->setEnabled(false);
+    _ui->stepButton->setEnabled(true);
+
     //threaded call to AlgModel that makes the bees
     QFuture<vector<Bee > > genesisCall = QtConcurrent::run(_beeAlgModel, &AlgorithmModel::genesis, _initialPop, _fieldDims, false);
     genesisCall.waitForFinished();
@@ -98,6 +113,9 @@ void MainWindow::on_pushButton_clicked()
 
     setGraduation(F);
     generateContourMap(F);
+    
+    season.setSeasonLength(_ui->genCap->value());
+    season.start();
 
     //threaded call to this object that draws the bees & the hive
     QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::draw);
@@ -116,24 +134,24 @@ void MainWindow::generateContourMap(double** foxholes)
     int m = _fieldDims.height();
     int n = _fieldDims.width();
 
-     const double** field = _beeAlgModel.getField();
+    const double** field = _beeAlgModel.getField();
 
-     ofstream fieldFilestream;
-     char fieldFilename[] = "fieldfromwindow.txt";
-     fieldFilestream.open(fieldFilename, ios::out);
+    ofstream fieldFilestream;
+    char fieldFilename[] = "fieldfromwindow.txt";
+    fieldFilestream.open(fieldFilename, ios::out);
 
-     for(int i = 0; i < m; i++)
-     {
-         for(int j = 0; j < n; j++)
-         {
-             fieldFilestream << field[i][j] << " ";
-         }
-         fieldFilestream << endl;
-     }
-     fieldFilestream.close();
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            fieldFilestream << field[i][j] << " ";
+        }
+        fieldFilestream << endl;
+    }
+    fieldFilestream.close();
 
-     QRgb color;
-     double value;
+    QRgb color;
+    double value;
 
     for (int i = 0; i < m; i++)
     {
@@ -145,10 +163,10 @@ void MainWindow::generateContourMap(double** foxholes)
         }
     }
     stringstream filename;
-    time_t some_time;
-    filename << /*QDir::currentPath().toStdString() <<*/ "contourMap" << some_time << ".jpg";
+
+    filename << /*QDir::currentPath().toStdString() <<*/ "contourMap" << abs(rand() / 2) << ".jpg";
     QImageWriter writer(QString::fromStdString(filename.str()), "jpg");
-     writer.write(contourMap);
+    writer.write(contourMap);
 }
 
 void MainWindow::setGraduation(double** foxholes)
@@ -171,7 +189,7 @@ void MainWindow::setGraduation(double** foxholes)
     _upperBound = upperBound;
 
     int difference = upperBound - lowerBound;
-     _graduation = difference / 10;
+    _graduation = difference / 10;
 }
 
 QRgb MainWindow::getColor(double value)
@@ -290,20 +308,28 @@ void MainWindow::on_initialPop_valueChanged(int newInitPop)
     cout << " and is now " << _initialPop << " and should be " << newInitPop << endl;
 }
 
-void MainWindow::on_fieldWidth_valueChanged(int )
+void MainWindow::on_fieldWidth_valueChanged(int)
 {
     int tempFieldWidth = _ui->fieldWidth->value();
+
+    /*
     while(tempFieldWidth % (_SHEKEL_DIMENSION - 1) != 0)
         tempFieldWidth++;
 
     _ui->fieldWidth->setValue(tempFieldWidth);
+    */
+    _fieldDims.setWidth(tempFieldWidth);
 }
 
-void MainWindow::on_fieldHeight_valueChanged(int )
+void MainWindow::on_fieldHeight_valueChanged(int)
 {
     int tempFieldHeight = _ui->fieldHeight->value();
+
+    /*
     while(tempFieldHeight % (_SHEKEL_DIMENSION - 1) != 0)
         tempFieldHeight++;
 
-    _ui->fieldWidth->setValue(tempFieldHeight);
+    _ui->fieldHeight->setValue(tempFieldHeight);
+    */
+    _fieldDims.setHeight(tempFieldHeight);
 }

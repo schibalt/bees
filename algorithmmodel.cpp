@@ -31,7 +31,6 @@ vector<Bee > AlgorithmModel::genesis(const int population, const QSize fieldDims
 
 void AlgorithmModel::computeField(double** foxholes)
 {
-
     ofstream indexFilestream;
     char indexFilename[] = "indices.txt";
     indexFilestream.open(indexFilename, ios::out);
@@ -39,7 +38,7 @@ void AlgorithmModel::computeField(double** foxholes)
     const int fieldWidth = _fieldDims.width();
     const int fieldHeight = _fieldDims.height();
 
-     double** field = new double*[fieldHeight];
+    double** field = new double*[fieldHeight];
 
     for (int i = 0; i < fieldHeight; ++i)
     {
@@ -57,16 +56,20 @@ void AlgorithmModel::computeField(double** foxholes)
     int subMatWidth = _fieldDims.width() / (_SHEKEL_DIMENSION - 1);
     int subMatHeight = _fieldDims.height() / (_SHEKEL_DIMENSION - 1);
 
-    float xRatio;
-    float yRatio;
+    float xLeftRatio;
+    float yUpRatio;
+    float xRightRatio;
+    float yDownRatio;
 
-    double upperXDifference;
-    double lowerXDifference;
+    //double upperXDifference;
+    //double lowerXDifference;
 
-    double weightedUpperValue;
-    double weightedLowerValue;
+    double weightedUpperLeftValue;
+    double weightedLowerLeftValue;
+    double weightedUpperRightValue;
+    double weightedLowerRightValue;
 
-    double yDifference;
+    //double yDifference;
 
     int iIdx;
     int jIdx;
@@ -80,26 +83,32 @@ void AlgorithmModel::computeField(double** foxholes)
             lowerLeftVal = foxholes[k][l - 1];
             lowerRightVal = foxholes[k][l];
 
-             upperXDifference = upperRightVal - upperLeftVal;
-             lowerXDifference = lowerRightVal - lowerLeftVal;
+            //upperXDifference = upperRightVal - upperLeftVal;
+            //lowerXDifference = lowerRightVal - lowerLeftVal;
 
             for (int i = 0; i < subMatHeight; i++)
             {
-                yRatio = (float) i / subMatHeight;
+                yDownRatio = (float) i / subMatHeight;
+                yUpRatio = 1 - yDownRatio;
 
                 for (int j = 0; j < subMatWidth; j++)
                 {
-                    xRatio = (float) j / subMatWidth;
+                    xRightRatio = (float) j / subMatWidth;
+                    xLeftRatio = 1 - xRightRatio;
 
-                     weightedUpperValue = upperLeftVal + upperXDifference * xRatio;
-                     weightedLowerValue = lowerLeftVal + lowerXDifference * xRatio;
+                    weightedUpperLeftValue = upperLeftVal * yUpRatio * xLeftRatio;
+                    weightedLowerLeftValue = lowerLeftVal * xLeftRatio * yDownRatio;
+                    weightedUpperRightValue = upperRightVal * yUpRatio * xRightRatio;
+                    weightedLowerRightValue = lowerRightVal * yDownRatio * xRightRatio;
 
-                     yDifference = weightedLowerValue - weightedUpperValue;
+                    //yDifference = weightedLowerValue - weightedUpperValue;
 
-                     iIdx = (k - 1) * subMatHeight + i;
-                     jIdx = (l - 1) * subMatWidth + j;
+                    iIdx = (k - 1) * subMatHeight + i;
+                    jIdx = (l - 1) * subMatWidth + j;
 
-                     field[iIdx][jIdx]  = weightedLowerValue + yDifference * yRatio;
+                    //field[iIdx][jIdx]  = weightedLowerValue + yDifference * yRatio;
+                    field[iIdx][jIdx]  = weightedUpperLeftValue + weightedLowerLeftValue
+                                         + weightedUpperRightValue + weightedLowerRightValue;
                 }
             }
         }
@@ -111,9 +120,9 @@ void AlgorithmModel::computeField(double** foxholes)
     char fieldFilename[] = "field.txt";
     fieldFilestream.open(fieldFilename, ios::out);
 
-    for(int i = 0; i < fieldHeight; i++)
+    for (int i = 0; i < fieldHeight; i++)
     {
-        for(int j = 0; j < fieldWidth; j++)
+        for (int j = 0; j < fieldWidth; j++)
         {
             fieldFilestream << _field[i][j] << " ";
         }
@@ -122,7 +131,7 @@ void AlgorithmModel::computeField(double** foxholes)
     fieldFilestream.close();
 }
 
-  const double** AlgorithmModel::getField()
+const double** AlgorithmModel::getField()
 {
     return  _field;
 }
@@ -178,17 +187,6 @@ double** AlgorithmModel::foxholes()
         for (int j = 0; j < testMatDimension; j++)
             F[i][j] = 0;
     }
-    /*
-    vertSeams = new int*[m];
-
-            for (int i = 0; i < m; ++i)
-            {
-                vertSeams[i] = new int[n];
-
-                for (int j = 0; j < n; j++)
-                    vertSeams[i][j] = 0;
-            }
-    */
 
     int x [testMatDimension];
 

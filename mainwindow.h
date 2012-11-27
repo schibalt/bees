@@ -49,12 +49,12 @@ class MainWindow : public QMainWindow
         int _graduation;
         int _upperBound;
         int _lowerBound;
-        const static int _GRADES = 10;
+        const static int _GRADES = 11;
         const static int _SHEKEL_DIMENSION = 10;
         QRgb getColor(double);
         void setGraduation(double**);
         bool eventFilter(QObject* , QEvent* );
-        SimulateSeason season;
+        //SimulateSeason season;
 
     private slots:
         void on_fieldHeight_valueChanged(int);

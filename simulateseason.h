@@ -1,13 +1,20 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QObject>
 #include <QDebug>
 
 #ifndef SIMULATESEASON_H
 #define SIMULATESEASON_H
 
-class SimulateSeason : public QThread
+class SimulateSeason : public QObject
 {
+    Q_OBJECT
+    //public slots:
+
+public:
+    SimulateSeason();
+    //SimulateSeason(...): pause(false) {}
     private:
         QMutex sync;
         QWaitCondition pauseCond;
@@ -15,16 +22,13 @@ class SimulateSeason : public QThread
         int _seasonLength;
         bool _step;
 
-    public:
-        SimulateSeason();
-        //SimulateSeason(...): pause(false) {}
-
         void resumeThread();
 void setSeasonLength(int);
         void pauseThread();
 
     protected:
         void run();
+
 };
 
 #endif // SIMULATESEASON_H

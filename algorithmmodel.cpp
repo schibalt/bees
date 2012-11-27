@@ -53,8 +53,11 @@ void AlgorithmModel::computeField(double** foxholes)
     double lowerLeftVal;
     double lowerRightVal;
 
-    int subMatWidth = _fieldDims.width() / (_SHEKEL_DIMENSION - 1);
-    int subMatHeight = _fieldDims.height() / (_SHEKEL_DIMENSION - 1);
+    int subMatWidth = _fieldDims.width() / (_SHEKEL_DIMENSION * 2);
+    int subMatHeight = _fieldDims.height() / (_SHEKEL_DIMENSION * 2);
+
+    //int subMatWidth = _fieldDims.width() / (_SHEKEL_DIMENSION - 1);
+    //int subMatHeight = _fieldDims.height() / (_SHEKEL_DIMENSION - 1);
 
     float xLeftRatio;
     float yUpRatio;
@@ -74,9 +77,9 @@ void AlgorithmModel::computeField(double** foxholes)
     int iIdx;
     int jIdx;
 
-    for (int k = 1; k < _SHEKEL_DIMENSION; k++)
+    for (int k = 1; k <= (_SHEKEL_DIMENSION * 2); k++)
     {
-        for (int l = 1; l < _SHEKEL_DIMENSION; l++)
+        for (int l = 1; l <= (_SHEKEL_DIMENSION * 2); l++)
         {
             upperLeftVal = foxholes[k - 1][l - 1];
             upperRightVal = foxholes[k - 1][l];
@@ -176,22 +179,31 @@ double** AlgorithmModel::foxholes()
         %       Last modified 03.02.2008
     */
 
-    const int testMatDimension = 10;
+    //const int testMatDimension = 10;
+    const int shekelArraySize = 2 * _SHEKEL_DIMENSION + 1;
 
-    double** F = new double*[testMatDimension];
+    double** F = new double*[shekelArraySize];
 
-    for (int i = 0; i < testMatDimension; ++i)
+    for (int i = 0; i < shekelArraySize; ++i)
     {
-        F[i] = new double[testMatDimension];
+        F[i] = new double[shekelArraySize];
 
-        for (int j = 0; j < testMatDimension; j++)
+        for (int j = 0; j < shekelArraySize; j++)
             F[i][j] = 0;
     }
 
-    int x [testMatDimension];
+    //inst array (default size = 21)
+    int x [shekelArraySize];
+    cout << "the shekel array has " << shekelArraySize << " elements" << endl;
 
-    for (int idx = 0; idx < testMatDimension; idx++)
-        x[idx] = idx;
+    int value;
+
+    //init array (default -10:1:10)
+    for (int idx = 0; idx < shekelArraySize; idx++)
+    {
+        value = idx - 10;
+        x[idx] = value;
+    }
 
     time_t rawtime;
     time(&rawtime);
@@ -199,8 +211,8 @@ double** AlgorithmModel::foxholes()
     // seed the rand num gen with the current time
     srand(rawtime);
 
-    for (int m = 0; m < testMatDimension; m++)
-        for (int n = 0; n < testMatDimension; n++)
+    for (int m = 0; m < shekelArraySize; m++)
+        for (int n = 0; n < shekelArraySize; n++)
         {
             int constants [2];
             constants[0] = x[m];
@@ -212,33 +224,29 @@ double** AlgorithmModel::foxholes()
 
 double AlgorithmModel::foxHelper(int* x)
 {
-    //% compute function value
-
     float sum = 0.0;
-
-    //%there appears to be no effect
-    //%holessqrt = 5;
-
     int seed = rand();
     float normal;
-    float h;
+    float tmp;
+    float tmp2 = 0.0;
 
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < pow(_SHEKEL_DIMENSION, 2); i++)
     {
-        float sp = 0.0;
+         tmp = 0.0;
 
-        for (int j = 0; j < x[0]; j++)
+        for (int j = 0; j < 2; j++)
         {
-            normal = r4_normal((float) 5.0, (float) 2.0, seed);
-            h = x[1] - normal;
+            normal = r4_normal(0, 15, seed);
+            tmp2 = tmp2 + (x[1] - normal);
             //% h = x(2) - a(i, j);
-            sp = sum + h * h;
+            //tmp = sum + tmp2 * tmp2;
         }
-        normal = r4_normal(0.5, 0.2, seed);
-        sum = sum - 1.0 / (sp + normal);
+        tmp = tmp + 1 / (i + tmp2);
+        //normal = r4_normal(0.5, 0.2, seed);
     }
+    sum = 1 / (0.002 + tmp);
 
-    return -sum;
+    return sum;
 
     //if (nargin == 1 || ~noPause)
     //    pause(0.05);

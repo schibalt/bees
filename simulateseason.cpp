@@ -1,6 +1,7 @@
 #include "simulateseason.h"
 
-SimulateSeason::SimulateSeason(/*int seasonLength*/)
+/*
+SimulateSeason::SimulateSeason(int seasonLength)
 {
     //_seasonLength = seasonLength;
     pause = 0;
@@ -44,3 +45,4 @@ void SimulateSeason::setSeasonLength(int seasonLength)
 {
     _seasonLength = seasonLength;
 }
+*/

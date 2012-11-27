@@ -114,8 +114,8 @@ void MainWindow::on_pushButton_clicked()
     setGraduation(F);
     generateContourMap(F);
     
-    season.setSeasonLength(_ui->genCap->value());
-    season.start();
+    //season.setSeasonLength(_ui->genCap->value());
+    //season.start();
 
     //threaded call to this object that draws the bees & the hive
     QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::draw);
@@ -189,7 +189,7 @@ void MainWindow::setGraduation(double** foxholes)
     _upperBound = upperBound;
 
     int difference = upperBound - lowerBound;
-    _graduation = difference / 10;
+    _graduation = difference / _GRADES;
 }
 
 QRgb MainWindow::getColor(double value)
@@ -203,8 +203,11 @@ QRgb MainWindow::getColor(double value)
 
         if (isGrade)
         {
-            switch (grade)
+            switch (grade - 1)
             {
+                case 0:
+                    return qRgb(0, 0, 0);
+                    break;
                 case 1:
                     return qRgb(127, 0, 255);
                     break;
@@ -237,7 +240,7 @@ QRgb MainWindow::getColor(double value)
             }
         }
     }
-    return qRgb(0, 0, 0);
+    return qRgb(255, 255, 255);
 }
 
 void MainWindow::draw()

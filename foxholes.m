@@ -9,53 +9,50 @@ function y = foxholes(x, noPause)
 %		plot.
 %
 %		Markus Buehren
-%		Last modified 03.02.2008
+%		Last modified 03.02.2008 
 
 switch nargin
-    case {1, 2}
-        % compute function value
-        
-        sum = 0.0;
-        
-        %there appears to be no effect
-        %holessqrt = 5;
-        
-        for i = 1:30
-            sp = 0.0;
-            for j = 1:x(1)
-                h = x(2) - random('Normal',5,2);
-                %h = x(2) - a(i, j);
-                sp = sum + h * h;
-            end
-            sum = sum - 1.0 / (sp + random('Normal',.5,.2));
-        end
-        
-        y = -sum;
-        
-        if nargin == 1 || ~noPause
-            pause(0.05);
-        end
-        
-    case 0
-        % plot function
-        x = 1:20;
-        N = length(x);
-        F = zeros(N);
-        
-        for m = 1:N
-            for n = 1:N
-                F(m, n) = foxholes([x(m); x(n)], 1);
-            end
-        end
-        
-        figure;
-        
-        contour2(x,x,F,10);
-        title('Contour plot of Shekel''s Foxholes');
-        %new stuff...
+	case {1, 2}
+		% compute function value
+
+		ai0 = [-32, -16, 0, 16, 32];
+		a = [
+			repmat(ai0, 1, 5);
+			reshape(repmat(ai0, 5 , 1), 1, 25);
+			];
+
+		tmp = 0;
+		for i = 1:25
+			tmp2 = 0;
+			for j = 1:2
+				tmp2 = tmp2 + (x(j) - random('Normal', 0, 15));
+				%tmp2 = tmp2 + (x(j) - a(j,i)).^6;
+			end
+			tmp = tmp + 1 / (i + tmp2);
+		end
+		y = 1 / (0.002 + tmp);
+		
+		if nargin == 1 || ~noPause
+			pause(0.05);
+		end
+		
+	case 0
+		% plot function
+        shekel_dimension = 10;
+		x = -1 * shekel_dimension:1:shekel_dimension;
+		N = length(x);
+		F = zeros(N);
+		for m=1:N
+			for n=1:N
+				F(m,n) = foxholes([x(m); x(n)], 1);
+			end
+		end
+
+		figure;
+		contour(x,x,F,10);
         surf(x,x,F);
-        %shading interp
-        %new stuff/
-    otherwise
-        error('Wrong number of input arguments.');
+		title('Contour plot of Shekel''s Foxholes');
+
+	otherwise
+		error('Wrong number of input arguments.');
 end

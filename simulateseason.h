@@ -1,33 +1,69 @@
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
-#include <QObject>
-#include <QDebug>
-
 #ifndef SIMULATESEASON_H
 #define SIMULATESEASON_H
 
-class SimulateSeason : public QObject
+#include <QObject>
+#include <QThread>
+#include <QDebug>
+
+#include <iostream>
+
+#include "bee.h"
+#include "hive.h"
+#include "normal.hpp"
+
+using namespace std;
+
+class WorkerBee : public QObject
 {
-    Q_OBJECT
-    //public slots:
+        Q_OBJECT
 
-public:
-    SimulateSeason();
-    //SimulateSeason(...): pause(false) {}
+    public:
+        explicit WorkerBee(QObject* parent = 0);
+
+        //colony generation
+        const vector<Bee >* getBees();
+        Hive getHive();
+        void setGenesisMembers(QThread&, int , QSize , bool);
+
+        //field generation
+        const double** getField();
+        void setFieldGenMembers(QThread&, int, int);
+        const double** getFoxholes();
+        //void setConnections(QThread &thread);
+
     private:
-        QMutex sync;
-        QWaitCondition pauseCond;
-        bool pause;
+        void disconnectEverything(QThread&);
+
+        //colony generation
+        int _population;
+        vector<Bee > _bees;
+        Hive _hive;
+        QSize _fieldDims;
+        bool _add;
+
+        void setHive();
+
+        //field generation
+        int _shekelMaxima;
+        int _foxholeNumber;
+        double** _foxholes;
+        double** _field;
+
+        double foxHelper(int* , int);
+
         int _seasonLength;
-        bool _step;
 
-        void resumeThread();
-void setSeasonLength(int);
-        void pauseThread();
+    signals:
+        void beesGenerated();
+        void foxholesGenerated();
+        void fieldGenerated();
 
-    protected:
-        void run();
+    public slots:
+        void foxholes();
+        void computeField();
+        void genesis();
+
+    private slots:
 
 };
 

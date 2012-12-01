@@ -22,16 +22,15 @@ switch nargin
 			];
 
 		tmp = 0;
-		for i = 1:24
+		for i = 1:10
 			tmp2 = 0;
 			for j = 1:2
-				tmp2 = tmp2 + (x(j) - random('norm', 0, 20)).^6;
-				%tmp2 = tmp2 + (x(j) - a(j,i)).^6;
+				%tmp2 = tmp2 + (x(j) - random()).^6;
+				tmp2 = tmp2 + (x(j) - a(j,i)).^6;
 			end
 			tmp = tmp + 1 / (i + tmp2);
 		end
-		y = (0.002 + tmp) * 10;
-        %y = y * random('norm', 0, 125);
+		y = 1 / (0.002 + tmp);
 		
 		if nargin == 1 || ~noPause
 			pause(0.05);
@@ -39,16 +38,15 @@ switch nargin
 		
 	case 0
 		% plot function
-        matvar = 10;
-		x = -1 * matvar:1:matvar;
+		x = -40:1:40;
 		N = length(x);
 		F = zeros(N);
 		for m=1:N
 			for n=1:N
 				F(m,n) = foxholes([x(m); x(n)], 1);
 			end
-		end
-
+        end
+        
 		figure;
 		contour(x,x,F,10);
 		title('Contour plot of Shekel''s Foxholes');

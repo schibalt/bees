@@ -1,0 +1,12 @@
+INPUT(
+./release\main.o
+./release\mainwindow.o
+./release\bee.o
+./release\algorithmmodel.o
+./release\hive.o
+./release\normal.o
+./release\simulateseason.o
+./release\simulateseason.o
+./release\moc_mainwindow.o
+./release\moc_simulateseason.o
+);

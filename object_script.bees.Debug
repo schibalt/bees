@@ -1,0 +1,12 @@
+INPUT(
+./debug\main.o
+./debug\mainwindow.o
+./debug\bee.o
+./debug\algorithmmodel.o
+./debug\hive.o
+./debug\normal.o
+./debug\simulateseason.o
+./debug\simulateseason.o
+./debug\moc_mainwindow.o
+./debug\moc_simulateseason.o
+);

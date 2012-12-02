@@ -120,8 +120,16 @@ void MainWindow::beesGenerated()
     int maxima = _ui->maxima->value();
     int bound = _ui->bound->value();
     int power = _ui->power->value();
+    int deterministic = _ui->deterBox->isChecked();
     
-    _workerBee.setFieldGenMembers(_thread, foxholes, maxima, bound, power);
+    _workerBee.setFieldGenMembers(
+        _thread,
+        foxholes,
+        maxima,
+        bound,
+        power,
+        deterministic
+    );
     
     qDebug() << "bees have been generated and";
     _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
@@ -144,6 +152,7 @@ void MainWindow::fieldGenerated()
     {
         for (int j = 0; j < foxholeMatDim; j++)
             foxholeFilestream << F[i][j] << " ";
+
         foxholeFilestream << endl;
     }
     foxholeFilestream.close();
@@ -161,7 +170,7 @@ void MainWindow::fieldGenerated()
 
 void MainWindow::fitnessesEvaluated()
 {
-    if (_ui->checkBox->isChecked())
+    if (_ui->stepBox->isChecked())
     {
         initialDraw();
 
@@ -191,7 +200,7 @@ void MainWindow::nextStep()
     
     int seasonLength = _ui->genCap->value();
     
-    if (!_ui->checkBox->isChecked() && _day < seasonLength)
+    if (!_ui->stepBox->isChecked() && _day < seasonLength)
     {
         switch (_step)
         {
@@ -239,8 +248,8 @@ QImage MainWindow::generateContourMap(const double** foxholes)
     
     QImage contourMap
     (
-        QSize( fieldWidth,  fieldHeight),
-         QImage::Format_RGB32
+        QSize(fieldWidth,  fieldHeight),
+        QImage::Format_RGB32
     );
     
     int m = fieldHeight;
@@ -386,22 +395,22 @@ void MainWindow::initialDraw()
         //qDebug() << "drawing a bee" << endl;
         QImage image;
 
-        switch(bee.getRole())
+        switch (bee.getRole())
         {
-        case Bee::SCOUT:
-            image.load("..\\copperbee.png");
-            break;
-        case Bee::RECRUIT:
-            image.load("..\\silverbee.png");
-            break;
-        case Bee::PRIORITY:
-            image.load("..\\goldbee.png");
-            break;
-        case Bee::ELITE:
-            image.load("..\\diamondbee.png");
-            break;
-        default:
-            qDebug() << "don't understand bee role";
+            case Bee::SCOUT:
+                image.load("..\\copperbee.png");
+                break;
+            case Bee::RECRUIT:
+                image.load("..\\silverbee.png");
+                break;
+            case Bee::PRIORITY:
+                image.load("..\\goldbee.png");
+                break;
+            case Bee::ELITE:
+                image.load("..\\diamondbee.png");
+                break;
+            default:
+                qDebug() << "don't understand bee role";
         }
 
         QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));

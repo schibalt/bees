@@ -189,7 +189,8 @@ void WorkerBee::setFieldGenMembers(
     int foxholes,
     int maxima,
     int bound,
-    int power
+    int power,
+    bool deterministic
 )
 {
     disconnectEverything(thread);
@@ -202,6 +203,7 @@ void WorkerBee::setFieldGenMembers(
     _maxima = maxima;
     _bound = bound;
     _power = power;
+    _deterministic = deterministic;
 }
 
 void WorkerBee::foxholes()
@@ -229,7 +231,7 @@ void WorkerBee::foxholes()
         _foxholes[i] = new double[matdim];
 
     int x [matdim];
-   qDebug() << "the shekel array has " << matdim << " elements";
+    qDebug() << "the shekel array has " << matdim << " elements";
 
     int value;
 
@@ -253,16 +255,34 @@ void WorkerBee::foxholes()
     for (int m = 0; m < matdim; m++)
         for (int n = 0; n < matdim; n++)
         {
-         xpair[0] = x[m];
-        xpair[1] = x[n];
+            xpair[0] = x[m];
+            xpair[1] = x[n];
 
-        _foxholes[m][n] = foxHelper(xpair);
+            _foxholes[m][n] = foxHelper(xpair);
         }
     emit foxholesGenerated();
 }
 
 double WorkerBee::foxHelper(int* x)
 {
+    const int maximaSqrt = sqrt(_maxima);
+
+    double constA [_maxima][2];
+    double a0 [maximaSqrt];
+
+    int maxSqrtHalf = maximaSqrt / 2;
+
+    for (int constIdx = 0; constIdx < maximaSqrt; constIdx++)
+        a0[constIdx] = ((constIdx - maxSqrtHalf) * 16);
+
+    for (int idx = 0; idx < maximaSqrt; idx++)
+        for (int subidx = 0; subidx < maximaSqrt; subidx++)
+        {
+            int cell = (maximaSqrt * idx) + subidx;
+            constA[cell][0] = a0[subidx];
+            constA[cell][1] = a0[idx];
+        }
+
     float tmp = 0.0;
     float tmp2;
 
@@ -280,24 +300,36 @@ double WorkerBee::foxHelper(int* x)
             uniform = r4_uniform_01(seed);
             //qDebug() << "uniform is " << uniform;
 
-            aval = (uniform * matdim) - _foxholeParam;
+            if (_deterministic)
+                aval = constA[i][j];
+            else
+                aval = (uniform * matdim) - _foxholeParam;
+
             //qDebug() << "aval is " << aval;
+
             tmp2 += pow(x[j] - aval, _power);
         }
         uniform = r4_uniform_01(seed);
-       // qDebug() << "uniform is " << uniform;
-        tmp += (1 / (tmp2 + uniform));
+        // qDebug() << "uniform is " << uniform;
+
+        if (_deterministic)
+            tmp += (1 / (i + tmp2));
+        else
+            tmp += (1 / (tmp2 + uniform));
     }
 
-    return tmp * 10;
+    if (_deterministic)
+        return -(1 / (.002 + tmp));
+    else
+        return tmp * 10;
 }
 
-void WorkerBee::setFitnessEvalMembers(QThread &thread, int sites, int eliteSites)
+void WorkerBee::setFitnessEvalMembers(QThread& thread, int sites, int eliteSites)
 {
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
-    connect(&thread, SIGNAL(started()), this,SLOT(evaluateFitnesses()));
+    connect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()));
     connect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
 
     _sites = sites;
@@ -337,20 +369,20 @@ void WorkerBee::evaluateFitnesses()
 
     foreach(Bee bee, _bees)
     {
-        qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
+        // qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
 
         ++inc;
     }
     /*
-*/
+    */
 
-    for (vector<Bee >::iterator i = _bees.end(); i != _bees.end() - _sites - 1; --i)
+    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - _sites - 1; --i)
     {
         (*i).setRole(Bee::PRIORITY);
         qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
     }
 
-    for (vector<Bee >::iterator i = _bees.end(); i != _bees.end() - _eliteSites - 1; --i)
+    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - _eliteSites - 1; --i)
     {
         (*i).setRole(Bee::ELITE);
         qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";

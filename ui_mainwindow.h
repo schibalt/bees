@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sat Dec 1 20:44:23 2012
+** Created: Sun Dec 2 11:00:21 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -57,7 +57,7 @@ public:
     QLabel *label_7;
     QSpinBox *sites;
     QDoubleSpinBox *doubleSpinBox;
-    QCheckBox *checkBox;
+    QCheckBox *stepBox;
     QPushButton *stepButton;
     QPushButton *pushButton;
     QGroupBox *groupBox_4;
@@ -70,6 +70,7 @@ public:
     QSpinBox *power;
     QLabel *label_10;
     QSpinBox *bound;
+    QCheckBox *deterBox;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -209,11 +210,11 @@ public:
 
         gridLayout_4->addWidget(doubleSpinBox, 4, 1, 1, 1);
 
-        checkBox = new QCheckBox(groupBox_3);
-        checkBox->setObjectName(QString::fromUtf8("checkBox"));
-        checkBox->setChecked(true);
+        stepBox = new QCheckBox(groupBox_3);
+        stepBox->setObjectName(QString::fromUtf8("stepBox"));
+        stepBox->setChecked(true);
 
-        gridLayout_4->addWidget(checkBox, 5, 0, 1, 1);
+        gridLayout_4->addWidget(stepBox, 5, 0, 1, 1);
 
         stepButton = new QPushButton(groupBox_3);
         stepButton->setObjectName(QString::fromUtf8("stepButton"));
@@ -284,6 +285,11 @@ public:
 
         gridLayout_5->addWidget(bound, 2, 1, 1, 1);
 
+        deterBox = new QCheckBox(groupBox_4);
+        deterBox->setObjectName(QString::fromUtf8("deterBox"));
+
+        gridLayout_5->addWidget(deterBox, 4, 0, 1, 1);
+
 
         gridLayout_3->addWidget(groupBox_4, 1, 0, 1, 1);
 
@@ -320,7 +326,7 @@ public:
         label_2->setText(QApplication::translate("MainWindow", "Elite Sites", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("MainWindow", "Priority sites", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MainWindow", "Random search (%)", 0, QApplication::UnicodeUTF8));
-        checkBox->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
+        stepBox->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
         stepButton->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
         pushButton->setText(QApplication::translate("MainWindow", "Begin", 0, QApplication::UnicodeUTF8));
         groupBox_4->setTitle(QApplication::translate("MainWindow", "Shekel params", 0, QApplication::UnicodeUTF8));
@@ -328,6 +334,7 @@ public:
         label_9->setText(QApplication::translate("MainWindow", "Maxima/minima", 0, QApplication::UnicodeUTF8));
         label_11->setText(QApplication::translate("MainWindow", "Power", 0, QApplication::UnicodeUTF8));
         label_10->setText(QApplication::translate("MainWindow", "Bound", 0, QApplication::UnicodeUTF8));
+        deterBox->setText(QApplication::translate("MainWindow", "Deterministic", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

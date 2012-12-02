@@ -28,7 +28,15 @@ class WorkerBee : public QObject
 
         //field generation
         const double** getField();
-        void setFieldGenMembers(QThread&, int, int, int, int);
+
+        void setFieldGenMembers(
+            QThread&,
+            int,
+            int,
+            int,
+            int,
+            bool
+        );
         const double** getFoxholes();
         //void setConnections(QThread &thread);
         void setFitnessEvalMembers(QThread&, int, int);
@@ -53,8 +61,9 @@ class WorkerBee : public QObject
         const static int _DIMENSIONS = 2;
         double** _foxholes;
         double** _field;
+        bool _deterministic;
 
-        double foxHelper(int* );
+        double foxHelper(int*);
 
         //fitness evaluation
         int _sites;
@@ -77,7 +86,7 @@ class WorkerBee : public QObject
         void computeField();
         void genesis();
         void evaluateFitnesses();
-        void evaluateFitnesses(vector<Bee > );
+        void evaluateFitnesses(vector<Bee >);
 
     private slots:
 

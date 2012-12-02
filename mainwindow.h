@@ -61,13 +61,13 @@ class MainWindow : public QMainWindow
         int _day;
         int steps;
 
-        const static int _grades = 11;
+        const static int _GRADES = 11;
         bool _okayToDraw ;
 
     public slots:
         void beesGenerated();
         void fieldGenerated();
-
+void fitnessesEvaluated();
 
     private slots:
         /*

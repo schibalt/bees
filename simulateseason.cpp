@@ -9,11 +9,15 @@ void WorkerBee::disconnectEverything(QThread& thread)
 {
     //colony/hive generation
     disconnect(&thread, SIGNAL(started()), this, SLOT(genesis()));
-    //disconnect(this, SIGNAL(beesGenerated()), &thread, SLOT(quit()));
+    disconnect(this, SIGNAL(quitBeeGenThread()), &thread, SLOT(quit()));
 
     //field generation
     disconnect(&thread, SIGNAL(started()), this, SLOT(foxholes()));
-    //disconnect(this, SIGNAL(fieldGenerated()), &thread, SLOT(quit()));
+    disconnect(this, SIGNAL(quitFieldGenThread()), &thread, SLOT(quit()));
+
+    //evaluate fitnesses
+    disconnect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()));
+    disconnect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
 }
 
 void WorkerBee::setGenesisMembers(
@@ -27,6 +31,7 @@ void WorkerBee::setGenesisMembers(
 
     //when the thread it started generate the bees
     connect(&thread, SIGNAL(started()), SLOT(genesis()));
+    connect(this, SIGNAL(quitBeeGenThread()), &thread, SLOT(quit()));
 
     _population = population;
     _fieldDims = fieldDims;
@@ -75,6 +80,7 @@ void WorkerBee::genesis()
 
     setHive();
 
+    emit quitBeeGenThread();
     emit beesGenerated();
 }
 
@@ -108,8 +114,10 @@ void WorkerBee::computeField()
     double lowerLeftVal;
     double lowerRightVal;
 
-    int subMatWidth = _fieldDims.width() / (_foxholeNumber * 2);
-    int subMatHeight = _fieldDims.height() / (_foxholeNumber * 2);
+    const int shekelArraySize = (2 * _foxholeParam) + 1;
+
+    double subMatWidth = (double) _fieldDims.width() / (shekelArraySize - 1);
+    double subMatHeight = (double) _fieldDims.height() / (shekelArraySize - 1);
 
     float xLeftRatio;
     float yUpRatio;
@@ -123,8 +131,6 @@ void WorkerBee::computeField()
 
     int iIdx;
     int jIdx;
-
-    const int shekelArraySize = 2 * _foxholeNumber + 1;
 
     for (int k = 1; k < shekelArraySize; k++)
         for (int l = 1; l < shekelArraySize; l++)
@@ -149,8 +155,8 @@ void WorkerBee::computeField()
                     weightedUpperRightValue = upperRightVal * yUpRatio * xRightRatio;
                     weightedLowerRightValue = lowerRightVal * yDownRatio * xRightRatio;
 
-                    iIdx = (k - 1) * subMatHeight + i;
-                    jIdx = (l - 1) * subMatWidth + j;
+                    iIdx = ((k - 1) * subMatHeight) + i;
+                    jIdx = ((l - 1) * subMatWidth) + j;
 
                     _field[iIdx][jIdx]  = weightedUpperLeftValue + weightedLowerLeftValue
                                           + weightedUpperRightValue + weightedLowerRightValue;
@@ -173,22 +179,29 @@ void WorkerBee::computeField()
         fieldFilestream << endl;
     }
     fieldFilestream.close();
+
+    emit quitFieldGenThread();
     emit fieldGenerated();
 }
 
 void WorkerBee::setFieldGenMembers(
     QThread& thread,
-    int foxholeNumber,
-    int shekelMaxima
+    int foxholes,
+    int maxima,
+    int bound,
+    int power
 )
 {
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
     connect(&thread, SIGNAL(started()), SLOT(foxholes()));
+    connect(this, SIGNAL(quitFieldGenThread()), &thread, SLOT(quit()));
 
-    _foxholeNumber = foxholeNumber;
-    _shekelMaxima = shekelMaxima;
+    _foxholeParam = foxholes;
+    _maxima = maxima;
+    _bound = bound;
+    _power = power;
 }
 
 void WorkerBee::foxholes()
@@ -207,44 +220,24 @@ void WorkerBee::foxholes()
         %       Last modified 03.02.2008
     */
 
-    /*
-    //inst/init result matrix
-    double** F = new double*[foxholeMatDim];
-
-    for (int i = 0; i < foxholeMatDim; ++i)
-    {
-        F[i] = new double[foxholeMatDim];
-
-        //for (int j = 0; j < shekelArraySize; j++)
-        //   F[i][j] = 0;
-    }
-    */
-
-    //set array size (default 21)
-    const int foxholeMatDim = 2 * _foxholeNumber + 1;
+    const int matdim = (2 * _foxholeParam) + 1;
 
     //inst/init result matrix
-    _foxholes = new double*[foxholeMatDim];
+    _foxholes = new double*[matdim];
 
-    for (int i = 0; i < foxholeMatDim; ++i)
-    {
-        _foxholes[i] = new double[foxholeMatDim];
+    for (int i = 0; i < matdim; ++i)
+        _foxholes[i] = new double[matdim];
 
-        //for (int j = 0; j < shekelArraySize; j++)
-        //   F[i][j] = 0;
-    }
-
-    //inst array (default size = 21)
-    int x [foxholeMatDim];
-    cout << "the shekel array has " << foxholeMatDim << " elements" << endl;
+    int x [matdim];
+   qDebug() << "the shekel array has " << matdim << " elements";
 
     int value;
 
     //init array (default -10:1:10)
-    for (int idx = 0; idx < foxholeMatDim; idx++)
+    for (int idx = 0; idx < matdim; idx++)
     {
-        value = idx - _foxholeNumber;
-        //cout << 'x' << idx << " is " << value << endl;
+        value = idx - _foxholeParam;
+        //qDebug() << 'x' << idx << " is " << value;
         x[idx] = value;
     }
 
@@ -253,57 +246,121 @@ void WorkerBee::foxholes()
 
     // seed the rand num gen with the current time
     srand(rawtime);
-    int seed = rand();
 
-    double foxhole;
+    //double foxhole;
     int xpair [2];
 
-    for (int m = 0; m < foxholeMatDim; m++)
-        for (int n = 0; n < foxholeMatDim; n++)
+    for (int m = 0; m < matdim; m++)
+        for (int n = 0; n < matdim; n++)
         {
+         xpair[0] = x[m];
+        xpair[1] = x[n];
 
-            xpair[0] = x[m];
-            xpair[1] = x[n];
-
-            foxhole = foxHelper(xpair, seed);
-            //F[m][n] = foxhole;
-            _foxholes[m][n] = foxhole;
+        _foxholes[m][n] = foxHelper(xpair);
         }
     emit foxholesGenerated();
 }
 
-double WorkerBee::foxHelper(int* x, int seed)
+double WorkerBee::foxHelper(int* x)
 {
     float tmp = 0.0;
-    float normal;
     float tmp2;
 
-    //static int a[2][25] = {{-32, -16, 0, 16, 32, -32, -16, 0, 16, 32, -32, -16, 0, 16, 32, -32, -16, 0, 16, 32, -32, -16, 0, 16, 32},
-    //                     {-32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32}};
+    double aval;
+    int seed = rand();
+    float uniform;
+    const int matdim = (2 * _foxholeParam) + 1;
 
-    for (int i = 0; i < _shekelMaxima; i++)
+    for (int i = 0; i < _maxima; i++)
     {
         tmp2 = 0.0;
 
-        for (int j = 0; j < 2; j++)
+        for (int j = 0; j < _DIMENSIONS; j++)
         {
-            seed = rand();
-            normal = r4_normal(0, 15, seed);
-            //cout << "0:10 " << normal << endl;
+            uniform = r4_uniform_01(seed);
+            //qDebug() << "uniform is " << uniform;
 
-            tmp2 += pow(x[1] - normal, 2);
-            //tmp2 += pow(x[j] - normal, 6);//good
-            //tmp2 += pow(x[j] - a[j][i], 2);
+            aval = (uniform * matdim) - _foxholeParam;
+            //qDebug() << "aval is " << aval;
+            tmp2 += pow(x[j] - aval, _power);
         }
-
-        tmp += (1 / (tmp2 + i));
+        uniform = r4_uniform_01(seed);
+       // qDebug() << "uniform is " << uniform;
+        tmp += (1 / (tmp2 + uniform));
     }
 
-    //normal = r4_normal(0, 250, rand());
+    return tmp * 10;
+}
 
-    //cout << "0:1 " << normal << endl;
+void WorkerBee::setFitnessEvalMembers(QThread &thread, int sites, int eliteSites)
+{
+    disconnectEverything(thread);
 
-    return 1 / (.002 + tmp);
-    //return -1 * (1 / (.002 + tmp));
-    //return normal * (.002 + tmp);
+    //when the thread it started generate the bees
+    connect(&thread, SIGNAL(started()), this,SLOT(evaluateFitnesses()));
+    connect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
+
+    _sites = sites;
+    _eliteSites = eliteSites;
+}
+
+void WorkerBee::evaluateFitnesses()
+{
+    qDebug() << "evaluating fitnesses";
+    int beeJ;
+    int beeI;
+
+    int hiveJ = _hive.getPoint().x();
+    int hiveI = _hive.getPoint().y();
+
+    double fieldPtQuality;
+    double distance;
+    double fitness;
+    int inc = 0;
+
+    for (vector<Bee >::iterator i = _bees.begin(); i != _bees.end(); ++i)
+    {
+        beeJ = (*i).getPoint().x();
+        beeI = (*i).getPoint().y();
+        distance = sqrt(pow(beeJ - hiveJ, 2) + pow(beeI - hiveI, 2));
+        fieldPtQuality = _field[beeI][beeJ];
+
+        fitness = fieldPtQuality / distance;
+        //qDebug() << "bee " << inc << " fitness is " << fitness;
+
+        (*i).setFitness(fitness);
+        ++inc;
+    }
+    sort(_bees.begin(), _bees.end());
+
+    inc = 0;
+
+    foreach(Bee bee, _bees)
+    {
+        qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
+
+        ++inc;
+    }
+    /*
+*/
+
+    for (vector<Bee >::iterator i = _bees.end(); i != _bees.end() - _sites - 1; --i)
+    {
+        (*i).setRole(Bee::PRIORITY);
+        qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
+    }
+
+    for (vector<Bee >::iterator i = _bees.end(); i != _bees.end() - _eliteSites - 1; --i)
+    {
+        (*i).setRole(Bee::ELITE);
+        qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+    }
+    emit quitFitEvalThread();
+    emit fitnessesEvaluated();
+}
+
+
+void WorkerBee::evaluateFitnesses(vector<Bee > neighborhood)
+{
+
 }

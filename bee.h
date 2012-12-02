@@ -6,7 +6,7 @@
 #ifndef BEE_H
 #define BEE_H
 
-class Bee
+struct Bee
 {
 public:
     Bee();
@@ -15,12 +15,18 @@ public:
     void setPoint(QPoint );
     const QPoint getPoint();
     void setPointFieldRandom(const QPoint, const QSize );
-    enum role { SCOUT, RECRUIT, ELITE };
     void setFitness(double);
+    void setRole(int );
+    int getRole();
+    const double getFitness() const;
+    bool operator < (const Bee &) const;
+
+    enum _roles { SCOUT, RECRUIT, PRIORITY, ELITE };
 
 private:
-    QPoint point;
-    double fitness;
+    QPoint _point;
+    double _fitness;
+    int _role;
 };
 
 #endif // BEE_H

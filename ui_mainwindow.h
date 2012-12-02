@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Fri Nov 30 14:01:44 2012
+** Created: Sat Dec 1 20:44:23 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -47,10 +47,6 @@ public:
     QSpinBox *fieldHeight;
     QSpinBox *fieldWidth;
     QSpinBox *initialPop;
-    QLabel *label_8;
-    QLabel *label_9;
-    QSpinBox *cfoxholeBox;
-    QSpinBox *maximaBox;
     QGroupBox *groupBox_3;
     QGridLayout *gridLayout_4;
     QLabel *label_4;
@@ -64,6 +60,16 @@ public:
     QCheckBox *checkBox;
     QPushButton *stepButton;
     QPushButton *pushButton;
+    QGroupBox *groupBox_4;
+    QGridLayout *gridLayout_5;
+    QLabel *label_8;
+    QSpinBox *foxholes;
+    QLabel *label_9;
+    QSpinBox *maxima;
+    QLabel *label_11;
+    QSpinBox *power;
+    QLabel *label_10;
+    QSpinBox *bound;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -72,7 +78,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(900, 600);
+        MainWindow->resize(900, 604);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -132,7 +138,7 @@ public:
         fieldWidth->setMinimum(10);
         fieldWidth->setMaximum(2000);
         fieldWidth->setSingleStep(10);
-        fieldWidth->setValue(500);
+        fieldWidth->setValue(700);
 
         gridLayout_2->addWidget(fieldWidth, 2, 1, 1, 1);
 
@@ -144,28 +150,6 @@ public:
         initialPop->setValue(50);
 
         gridLayout_2->addWidget(initialPop, 0, 1, 1, 1);
-
-        label_8 = new QLabel(groupBox_2);
-        label_8->setObjectName(QString::fromUtf8("label_8"));
-
-        gridLayout_2->addWidget(label_8, 5, 0, 1, 1);
-
-        label_9 = new QLabel(groupBox_2);
-        label_9->setObjectName(QString::fromUtf8("label_9"));
-
-        gridLayout_2->addWidget(label_9, 6, 0, 1, 1);
-
-        cfoxholeBox = new QSpinBox(groupBox_2);
-        cfoxholeBox->setObjectName(QString::fromUtf8("cfoxholeBox"));
-        cfoxholeBox->setValue(10);
-
-        gridLayout_2->addWidget(cfoxholeBox, 5, 1, 1, 1);
-
-        maximaBox = new QSpinBox(groupBox_2);
-        maximaBox->setObjectName(QString::fromUtf8("maximaBox"));
-        maximaBox->setValue(10);
-
-        gridLayout_2->addWidget(maximaBox, 6, 1, 1, 1);
 
 
         gridLayout_3->addWidget(groupBox_2, 0, 0, 1, 1);
@@ -238,12 +222,70 @@ public:
         gridLayout_4->addWidget(stepButton, 5, 1, 1, 1);
 
 
-        gridLayout_3->addWidget(groupBox_3, 2, 0, 1, 1);
+        gridLayout_3->addWidget(groupBox_3, 3, 0, 1, 1);
 
         pushButton = new QPushButton(groupBox);
         pushButton->setObjectName(QString::fromUtf8("pushButton"));
 
-        gridLayout_3->addWidget(pushButton, 1, 0, 1, 1);
+        gridLayout_3->addWidget(pushButton, 2, 0, 1, 1);
+
+        groupBox_4 = new QGroupBox(groupBox);
+        groupBox_4->setObjectName(QString::fromUtf8("groupBox_4"));
+        gridLayout_5 = new QGridLayout(groupBox_4);
+        gridLayout_5->setSpacing(6);
+        gridLayout_5->setContentsMargins(11, 11, 11, 11);
+        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
+        label_8 = new QLabel(groupBox_4);
+        label_8->setObjectName(QString::fromUtf8("label_8"));
+
+        gridLayout_5->addWidget(label_8, 0, 0, 1, 1);
+
+        foxholes = new QSpinBox(groupBox_4);
+        foxholes->setObjectName(QString::fromUtf8("foxholes"));
+        foxholes->setValue(10);
+
+        gridLayout_5->addWidget(foxholes, 0, 1, 1, 1);
+
+        label_9 = new QLabel(groupBox_4);
+        label_9->setObjectName(QString::fromUtf8("label_9"));
+
+        gridLayout_5->addWidget(label_9, 1, 0, 1, 1);
+
+        maxima = new QSpinBox(groupBox_4);
+        maxima->setObjectName(QString::fromUtf8("maxima"));
+        maxima->setEnabled(true);
+        maxima->setMinimum(1);
+        maxima->setMaximum(1000);
+        maxima->setValue(30);
+
+        gridLayout_5->addWidget(maxima, 1, 1, 1, 1);
+
+        label_11 = new QLabel(groupBox_4);
+        label_11->setObjectName(QString::fromUtf8("label_11"));
+
+        gridLayout_5->addWidget(label_11, 3, 0, 1, 1);
+
+        power = new QSpinBox(groupBox_4);
+        power->setObjectName(QString::fromUtf8("power"));
+        power->setValue(2);
+
+        gridLayout_5->addWidget(power, 3, 1, 1, 1);
+
+        label_10 = new QLabel(groupBox_4);
+        label_10->setObjectName(QString::fromUtf8("label_10"));
+        label_10->setEnabled(true);
+
+        gridLayout_5->addWidget(label_10, 2, 0, 1, 1);
+
+        bound = new QSpinBox(groupBox_4);
+        bound->setObjectName(QString::fromUtf8("bound"));
+        bound->setEnabled(false);
+        bound->setValue(32);
+
+        gridLayout_5->addWidget(bound, 2, 1, 1, 1);
+
+
+        gridLayout_3->addWidget(groupBox_4, 1, 0, 1, 1);
 
 
         gridLayout->addWidget(groupBox, 0, 1, 1, 1);
@@ -269,20 +311,23 @@ public:
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QString());
-        groupBox_2->setTitle(QApplication::translate("MainWindow", "Preprocessing", 0, QApplication::UnicodeUTF8));
+        groupBox_2->setTitle(QApplication::translate("MainWindow", "Case params", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("MainWindow", "Initial population", 0, QApplication::UnicodeUTF8));
         label_5->setText(QApplication::translate("MainWindow", "Field width", 0, QApplication::UnicodeUTF8));
         label_6->setText(QApplication::translate("MainWindow", "Field height", 0, QApplication::UnicodeUTF8));
-        label_8->setText(QApplication::translate("MainWindow", "Foxhole number", 0, QApplication::UnicodeUTF8));
-        label_9->setText(QApplication::translate("MainWindow", "Maxima/minima", 0, QApplication::UnicodeUTF8));
         groupBox_3->setTitle(QApplication::translate("MainWindow", "Runtime", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("MainWindow", "Generations", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("MainWindow", "Elite Sites", 0, QApplication::UnicodeUTF8));
-        label_3->setText(QApplication::translate("MainWindow", "Sites", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("MainWindow", "Priority sites", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MainWindow", "Random search (%)", 0, QApplication::UnicodeUTF8));
         checkBox->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
         stepButton->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
         pushButton->setText(QApplication::translate("MainWindow", "Begin", 0, QApplication::UnicodeUTF8));
+        groupBox_4->setTitle(QApplication::translate("MainWindow", "Shekel params", 0, QApplication::UnicodeUTF8));
+        label_8->setText(QApplication::translate("MainWindow", "Foxhole number", 0, QApplication::UnicodeUTF8));
+        label_9->setText(QApplication::translate("MainWindow", "Maxima/minima", 0, QApplication::UnicodeUTF8));
+        label_11->setText(QApplication::translate("MainWindow", "Power", 0, QApplication::UnicodeUTF8));
+        label_10->setText(QApplication::translate("MainWindow", "Bound", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

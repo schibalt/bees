@@ -9,19 +9,13 @@ MainWindow::MainWindow(QWidget* parent) :
     _ui->stepButton->installEventFilter(this);
     _scene = new QGraphicsScene(this);
     _ui->graphicsView->setScene(_scene);
-    //_seasonLength = _ui->genCap->value();
-    //_sites = _ui->sites->value();
-    // _eliteSites = _ui->eliteSites->value();
-    // _initialPop = _ui->initialPop->value();
-    //_fieldDims = QSize(_ui->fieldWidth->value(), _ui->fieldHeight->value());
     _okayToDraw = false;
     
     //when the thread finishes go to mapped slot
-    QObject::connect(&_workerBee, SIGNAL(beesGenerated()), &_thread, SLOT(quit()));
     QObject::connect(&_workerBee, SIGNAL(beesGenerated()), this, SLOT(beesGenerated()));
     QObject::connect(&_workerBee, SIGNAL(fieldGenerated()), this, SLOT(fieldGenerated()));
     QObject::connect(&_workerBee, SIGNAL(foxholesGenerated()), &_workerBee, SLOT(computeField()));
-    QObject::connect(&_workerBee, SIGNAL(fieldGenerated()), &_thread, SLOT(quit()));
+    QObject::connect(&_workerBee, SIGNAL(fitnessesEvaluated()), this, SLOT(fitnessesEvaluated()));
     
     //_workerBee.setConnections(_thread);
     _workerBee.moveToThread(&_thread);
@@ -122,10 +116,12 @@ void MainWindow::beesGenerated()
 {
     qDebug() << "bees generated";
     
-    int foxholeNumber = _ui->cfoxholeBox->value();
-    int shekelMaxima = _ui->maximaBox->value();
+    int foxholes = _ui->foxholes->value();
+    int maxima = _ui->maxima->value();
+    int bound = _ui->bound->value();
+    int power = _ui->power->value();
     
-    _workerBee.setFieldGenMembers(_thread, foxholeNumber, shekelMaxima);
+    _workerBee.setFieldGenMembers(_thread, foxholes, maxima, bound, power);
     
     qDebug() << "bees have been generated and";
     _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
@@ -134,12 +130,13 @@ void MainWindow::beesGenerated()
 
 void MainWindow::fieldGenerated()
 {
+    qDebug() << "field has been generated and";
     ofstream foxholeFilestream;
     char foxholeFilename[] = "foxholes.txt";
     foxholeFilestream.open(foxholeFilename, ios::out);
     
-    int foxholeNumber = _ui->cfoxholeBox->value();
-    const int foxholeMatDim = 2 * foxholeNumber + 1;
+    int foxholeNumber = _ui->foxholes->value();
+    const int foxholeMatDim = (2 * foxholeNumber) + 1;
     
     const double** F = _workerBee.getFoxholes();
     
@@ -153,11 +150,21 @@ void MainWindow::fieldGenerated()
     
     setGraduation(F);
     contourMap = generateContourMap(F);
-    
+
+    int sites = _ui->sites->value();
+    int eliteSites = _ui->eliteSites->value();
+
+    _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
+    _workerBee.setFitnessEvalMembers(_thread, sites, eliteSites);
+    _thread.start();
+}
+
+void MainWindow::fitnessesEvaluated()
+{
     if (_ui->checkBox->isChecked())
     {
         initialDraw();
-        
+
         //threaded call to this object that draws the bees & the hive
         // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::initialDraw);
         //drawCall.waitForFinished();
@@ -232,8 +239,8 @@ QImage MainWindow::generateContourMap(const double** foxholes)
     
     QImage contourMap
     (
-        QSize(fieldWidth, fieldHeight),
-        QImage::Format_RGB32
+        QSize( fieldWidth,  fieldHeight),
+         QImage::Format_RGB32
     );
     
     int m = fieldHeight;
@@ -271,41 +278,41 @@ QImage MainWindow::generateContourMap(const double** foxholes)
     
     filename << /*QDir::currentPath().toStdString() <<*/ "contourMap" << abs(rand() / 2) << ".jpg";
     QImageWriter writer(QString::fromStdString(filename.str()), "jpg");
-    writer.write(contourMap);
+    //writer.write(contourMap);
     //setBackground(contourMap);
     return contourMap;
 }
 
 void MainWindow::setGraduation(const double** foxholes)
 {
-    int lowerBound = foxholes[0][0];
-    int upperBound = foxholes[0][0];
-    
-    int foxholeMatDim = _ui->cfoxholeBox->value();
-    
+    double lowerBound = foxholes[0][0];
+    double upperBound = foxholes[0][0];
+
+    const int foxholeMatDim = (_ui->foxholes->value() * 2) + 1;
+
     for (int i = 0; i < foxholeMatDim; i++)
     {
         for (int j = 0; j < foxholeMatDim; j++)
         {
             if (foxholes[i][j] > upperBound)
                 upperBound = foxholes[i][j];
-                
+
             if (foxholes[i][j] < lowerBound)
                 lowerBound = foxholes[i][j];
         }
     }
     _lowerBound = lowerBound;
     _upperBound = upperBound;
-    
-    int difference = upperBound - lowerBound;
-    _graduation = difference / _grades;
+
+    double difference = (double) upperBound - lowerBound;
+    _graduation = (double) difference / _GRADES;
 }
 
 QRgb MainWindow::getColor(double value)
 {
     bool isGrade = false;
     
-    for (int grade = 1; grade <= _grades; grade++)
+    for (int grade = 1; grade <= _GRADES; grade++)
     {
         if (value < _lowerBound + _graduation * grade)
             isGrade = true;
@@ -358,13 +365,45 @@ void MainWindow::initialDraw()
     
     int fieldWidth = _ui->fieldWidth->value();
     int fieldHeight = _ui->fieldHeight->value();
+
+    Hive hive = _workerBee.getHive();
+
+    double xRatio = (double) hive.getPoint().x() / fieldWidth;
+    double yRatio = (double) hive.getPoint().y() / fieldHeight;
+    int xPos = xRatio * _ui->graphicsView->width();
+    int yPos = yRatio * _ui->graphicsView->height();
+    QImage image;
+    image.load("..\\Bee_Hive.png");
+    //image = image.scaled(213, 300);
+
+    QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+    Qgpmi->setPos(xPos, yPos);
+    (*_scene).addItem(Qgpmi);
     
     const vector<Bee >* bees = _workerBee.getBees();
     foreach(Bee bee, *bees)
     {
         //qDebug() << "drawing a bee" << endl;
         QImage image;
-        image.load("..\\beesmall.png");
+
+        switch(bee.getRole())
+        {
+        case Bee::SCOUT:
+            image.load("..\\copperbee.png");
+            break;
+        case Bee::RECRUIT:
+            image.load("..\\silverbee.png");
+            break;
+        case Bee::PRIORITY:
+            image.load("..\\goldbee.png");
+            break;
+        case Bee::ELITE:
+            image.load("..\\diamondbee.png");
+            break;
+        default:
+            qDebug() << "don't understand bee role";
+        }
+
         QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
         
         double xRatio = (double) bee.getPoint().x() / fieldWidth;
@@ -381,19 +420,6 @@ void MainWindow::initialDraw()
         Qgpmi->setPos(xPos, yPos);
         (*_scene).addItem(Qgpmi);
     }
-    Hive hive = _workerBee.getHive();
-    
-    double xRatio = (double) hive.getPoint().x() / fieldWidth;
-    double yRatio = (double) hive.getPoint().y() / fieldHeight;
-    int xPos = xRatio * _ui->graphicsView->width();
-    int yPos = yRatio * _ui->graphicsView->height();
-    QImage image;
-    image.load("..\\Bee_Hive.png");
-    //image = image.scaled(213, 300);
-    
-    QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-    Qgpmi->setPos(xPos, yPos);
-    (*_scene).addItem(Qgpmi);
 }
 
 void MainWindow::on_stepButton_clicked()

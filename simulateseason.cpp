@@ -107,7 +107,9 @@ void WorkerBee::setFieldGenMembers(
     int maxima,
     int bound,
     int power,
-    bool deterministic
+    bool deterministic,
+    bool d1,
+    bool d2
 )
 {
     disconnectEverything(thread);
@@ -121,6 +123,8 @@ void WorkerBee::setFieldGenMembers(
     _bound = bound;
     _power = power;
     _deterministic = deterministic;
+    _d1 = d1;
+    _d2 = d2;
 }
 
 void WorkerBee::foxholes()
@@ -223,26 +227,37 @@ double WorkerBee::foxHelper(int* x)
                 aval = (uniform * matdim) - _foxholeParam;
 
             //qDebug() << "aval is " << aval;
-
             tmp2 += pow(x[i] - aval, _power);
         }
         uniform = _maxima * r4_uniform_01(seed);
         // qDebug() << "uniform is " << uniform;
 
         if (_deterministic)
-            tmp += (1 / (j + tmp2));
+            tmp += (1 / ((j + 1) + tmp2));
         else
             tmp += (1 / (tmp2 + uniform));
     }
 
-    if (_deterministic)
-    {
+    if (_d1)
         return -(1 / (.002 + tmp));
-        return (1 / (.002 + tmp));
-        return 119.998 - tmp;
-    }
     else
         return tmp * 10;
+    /*
+    if (_deterministic)
+    {
+
+        return 119.998 - tmp;
+        return .002 + tmp;
+        return (1 / (.002 + tmp));
+    }
+    else
+    {
+        return tmp * 10;
+        return tmp;
+        return tmp * 10;
+        return .002 + tmp;
+    }
+    */
 }
 
 void WorkerBee::computeField()
@@ -629,7 +644,7 @@ struct compareBees
 {
     bool operator()(Bee* oneBee, Bee* anotherBee)
     {
-        return *oneBee < *anotherBee;
+        return (*oneBee).getFitness() < (*anotherBee).getFitness();
     }
 };
 
@@ -644,8 +659,8 @@ void WorkerBee::evalNeighborFits()
     {
         inc = 0;
 
-        sort((*i).begin(), (*i).end(),compareBees());
-        reverse((*i).begin(), (*i).end());
+        sort((*i).begin() + 1, (*i).end(), compareBees());
+        reverse((*i).begin() + 1, (*i).end());
         /*
         */
         for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
@@ -654,7 +669,7 @@ void WorkerBee::evalNeighborFits()
             qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
                      << " in elite neighborhood " << elite;
 
-            if (j == (*i).begin())
+            if (j == (*i).begin() + 1)
             {
                 qDebug() << " and is the fittest neighbor";
                 bee->setRole(Bee::PRIORITY);
@@ -678,8 +693,8 @@ void WorkerBee::evalNeighborFits()
     {
         inc = 0;
 
-        sort((*i).begin(), (*i).end(), compareBees());
-        reverse((*i).begin(), (*i).end());
+        sort((*i).begin() + 1, (*i).end(), compareBees());
+        reverse((*i).begin() + 1, (*i).end());
         /*
         */
 
@@ -689,7 +704,7 @@ void WorkerBee::evalNeighborFits()
             qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
                      << " in priority neighborhood " << prior;
 
-            if (j == (*i).begin())
+            if (j == (*i).begin() + 1)
             {
                 bee->setRole(Bee::PRIORITY);
                 qDebug() << " and is the fittest neighbor";
@@ -706,4 +721,9 @@ void WorkerBee::evalNeighborFits()
     }
     emit quitNeighborFitEvalThread();
     emit neighborFitsEval();
+}
+
+void WorkerBee::newGenMembers(QThread& thread)
+{
+
 }

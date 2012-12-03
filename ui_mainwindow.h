@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sun Dec 2 21:30:42 2012
+** Created: Mon Dec 3 15:05:01 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -24,6 +24,7 @@
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenuBar>
 #include <QtGui/QPushButton>
+#include <QtGui/QRadioButton>
 #include <QtGui/QSpinBox>
 #include <QtGui/QStatusBar>
 #include <QtGui/QToolBar>
@@ -78,6 +79,8 @@ public:
     QLabel *label_10;
     QSpinBox *bound;
     QCheckBox *deterBox;
+    QRadioButton *radioButton;
+    QRadioButton *radioButton_2;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -334,6 +337,17 @@ public:
 
         gridLayout_5->addWidget(deterBox, 4, 0, 1, 1);
 
+        radioButton = new QRadioButton(groupBox_4);
+        radioButton->setObjectName(QString::fromUtf8("radioButton"));
+        radioButton->setChecked(true);
+
+        gridLayout_5->addWidget(radioButton, 4, 1, 1, 1);
+
+        radioButton_2 = new QRadioButton(groupBox_4);
+        radioButton_2->setObjectName(QString::fromUtf8("radioButton_2"));
+
+        gridLayout_5->addWidget(radioButton_2, 5, 1, 1, 1);
+
 
         gridLayout_3->addWidget(groupBox_4, 1, 0, 1, 1);
 
@@ -384,6 +398,8 @@ public:
         label_11->setText(QApplication::translate("MainWindow", "Power", 0, QApplication::UnicodeUTF8));
         label_10->setText(QApplication::translate("MainWindow", "Bound", 0, QApplication::UnicodeUTF8));
         deterBox->setText(QApplication::translate("MainWindow", "Deterministic", 0, QApplication::UnicodeUTF8));
+        radioButton->setText(QApplication::translate("MainWindow", "1", 0, QApplication::UnicodeUTF8));
+        radioButton_2->setText(QApplication::translate("MainWindow", "2", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

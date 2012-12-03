@@ -35,6 +35,8 @@ class WorkerBee : public QObject
             int,
             int,
             int,
+            bool,
+            bool,
             bool
         );
 
@@ -50,6 +52,8 @@ class WorkerBee : public QObject
        //neighborhood fitness evaluation
 
        void setNeighborFitEvalMembs(QThread&);
+
+       void newGenMembers(QThread&);
 
     private:
         void disconnectEverything(QThread&);
@@ -72,6 +76,8 @@ class WorkerBee : public QObject
         double** _foxholes;
         double** _field;
         bool _deterministic;
+        bool _d1 ;
+        bool _d2;
 
         double foxHelper(int*);
 

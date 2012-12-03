@@ -45,11 +45,11 @@ class MainWindow : public QMainWindow
         QGraphicsScene* _scene;
         bool setBackground();
         void initialDraw();
-        int _graduation;
+        double _graduation;
         int _upperBound;
         int _lowerBound;
         QImage contourMap;
-        const static int _GRADES = 11;
+        const static int _GRADES = 12;
 
         void computeField();
         void setGraduation(const double**);

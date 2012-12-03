@@ -131,6 +131,8 @@ void MainWindow::beesGenerated()
     int bound = _ui->bound->value();
     int power = _ui->power->value();
     int deterministic = _ui->deterBox->isChecked();
+    bool d1 = _ui->radioButton->isChecked();
+    bool d2 = _ui->radioButton_2->isChecked();
     
     _workerBee.setFieldGenMembers(
         _thread,
@@ -138,7 +140,9 @@ void MainWindow::beesGenerated()
         maxima,
         bound,
         power,
-        deterministic
+        deterministic,
+        d2,
+        d2
     );
 
     _thread.start();
@@ -200,6 +204,10 @@ void MainWindow::setGraduation(const double** foxholes)
 
     double difference = (double) upperBound - lowerBound;
     _graduation = (double) difference / _GRADES;
+
+    qDebug() << "lowerbound " << lowerBound;
+    qDebug() << "upperBound " << upperBound;
+    qDebug() << "_graduation " << _graduation;
 }
 
 QImage MainWindow::generateContourMap(const double** foxholes)
@@ -261,14 +269,14 @@ QRgb MainWindow::getColor(double value)
 {
     bool isGrade = false;
 
-    for (int grade = 1; grade <= _GRADES; grade++)
+    for (double grade = 1; grade < _GRADES; grade++)
     {
-        if (value < _lowerBound + _graduation * grade)
+        if (value < _lowerBound + (_graduation * grade))
             isGrade = true;
 
         if (isGrade)
         {
-            switch (grade - 1)
+            switch ((int) grade - 1)
             {
                 case 0:
                     return qRgb(0, 0, 0);
@@ -300,8 +308,12 @@ QRgb MainWindow::getColor(double value)
                 case 9:
                     return qRgb(255, 127, 0);
                     break;
-                default:
+                case 10:
                     return qRgb(255, 0, 0);
+                    break;
+                case 11:
+                    return qRgb(255, 255, 255);
+                    break;
             }
         }
     }
@@ -540,6 +552,17 @@ void MainWindow::nextStep()
                 break;
 
             case 3:
+                _workerBee.newGenMembers(_thread);
+
+                if (_ui->stepBox->isChecked())
+                {
+                    QObject::connect(&_workerBee, SIGNAL(newGen()), this, SLOT(drawStep()));
+                }
+                else
+                {
+                    QObject::connect(&_workerBee, SIGNAL(newGen()), this, SLOT(nextStep()));
+                }
+                _thread.start();
                 break;
 
             default:

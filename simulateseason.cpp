@@ -8,7 +8,7 @@ WorkerBee::WorkerBee(QObject* parent) :
 void WorkerBee::disconnectEverything(QThread& thread)
 {
     //colony/hive generation
-    disconnect(&thread, SIGNAL(started()), this, SLOT(genesis()));
+    disconnect(&thread, SIGNAL(started()), this, SLOT(generate()));
     disconnect(this, SIGNAL(quitBeeGenThread()), &thread, SLOT(quit()));
 
     //field generation
@@ -30,6 +30,10 @@ void WorkerBee::disconnectEverything(QThread& thread)
     //evaluate fitnesses of bees in each neighborhood
     disconnect(&thread, SIGNAL(started()), this, SLOT(evalNeighborFits()));
     disconnect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()));
+
+    //new gen
+    disconnect(&thread, SIGNAL(started()), this, SLOT(regenerated()));
+    disconnect(this, SIGNAL(quitRegenThread()), &thread, SLOT(quit()));
 }
 
 void WorkerBee::setGenesisMembers(
@@ -42,8 +46,8 @@ void WorkerBee::setGenesisMembers(
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
-    connect(&thread, SIGNAL(started()), SLOT(genesis()));
-    connect(this, SIGNAL(quitBeeGenThread()), &thread, SLOT(quit()));
+    connect(&thread, SIGNAL(started()), SLOT(generate()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitBeeGenThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
 
     _population = population;
     _fieldDims = fieldDims;
@@ -70,7 +74,7 @@ const double** WorkerBee::getField()
     return  const_cast<const double**>(_field);
 }
 
-void WorkerBee::genesis()
+void WorkerBee::generate()
 {
     if (!_add)
         _bees.clear();
@@ -115,8 +119,8 @@ void WorkerBee::setFieldGenMembers(
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
-    connect(&thread, SIGNAL(started()), SLOT(foxholes()));
-    connect(this, SIGNAL(quitFieldGenThread()), &thread, SLOT(quit()));
+    connect(&thread, SIGNAL(started()), SLOT(foxholes()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitFieldGenThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
 
     _foxholeParam = foxholes;
     _maxima = maxima;
@@ -360,8 +364,8 @@ void WorkerBee::setFitnessEvalMembers(QThread& thread)
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
-    connect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()));
-    connect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
+    connect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
 }
 
 void WorkerBee::evaluateFitnesses()
@@ -412,8 +416,8 @@ void WorkerBee::setSiteSelectionMembers(QThread& thread, int sites, int eliteSit
 {
     disconnectEverything(thread);
 
-    connect(&thread, SIGNAL(started()), this, SLOT(selectSites()));
-    connect(this, SIGNAL(quitSiteSelectThread()), &thread, SLOT(quit()));
+    connect(&thread, SIGNAL(started()), this, SLOT(selectSites()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitSiteSelectThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
 
     _sites = sites;
     _eliteSites = eliteSites;
@@ -426,7 +430,7 @@ void WorkerBee::selectSites()
 
     int eliteOffset =  1 + _eliteSites;
     int priorityOffset = 1 + _sites;
-    Bee* bee;
+    //Bee* bee;
 
     for (vector<Bee >::iterator i = _bees.end() - eliteOffset; i != _bees.end() - priorityOffset; --i)
     {
@@ -462,8 +466,8 @@ void WorkerBee::setRecruitmentMembers
     _eliteWeight = 2;
     _priorityWeight = 1;
 
-    connect(&thread, SIGNAL(started()), this, SLOT(recruit()));
-    connect(this, SIGNAL(quitRecruitmentThread()), &thread, SLOT(quit()));
+    connect(this, SIGNAL(quitRecruitmentThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
+    connect(&thread, SIGNAL(started()), this, SLOT(recruit()), Qt::UniqueConnection);
 }
 
 void WorkerBee::recruit()
@@ -587,7 +591,7 @@ void WorkerBee::moveToSite(vector<Bee* > neighborhood)
     deltaLambda = boundaryEast - boundaryWest;
     deltaPhi = boundarySouth - boundaryNorth;
 
-    qDebug() << "evaluating neighborhood fitnesses";
+    // qDebug() << "evaluating neighborhood fitnesses";
 
     int hiveJ = _hive.getPoint().x();
     int hiveI = _hive.getPoint().y();
@@ -636,8 +640,8 @@ const vector<vector< Bee* > >* WorkerBee::getPriorityNeighborhoods()
 void WorkerBee::setNeighborFitEvalMembs(QThread& thread)
 {
     disconnectEverything(thread);
-    connect(&thread, SIGNAL(started()), this, SLOT(evalNeighborFits()));
-    connect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()));
+    connect(&thread, SIGNAL(started()), this, SLOT(evalNeighborFits()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
 }
 
 struct compareBees
@@ -666,17 +670,17 @@ void WorkerBee::evalNeighborFits()
         for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
         {
             bee = (*j);
-            qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
-                     << " in elite neighborhood " << elite;
+            //  qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
+            //           << " in elite neighborhood " << elite;
 
             if (j == (*i).begin() + 1)
             {
-                qDebug() << " and is the fittest neighbor";
+                //    qDebug() << " and is the fittest neighbor";
                 bee->setRole(Bee::PRIORITY);
             }
             else
             {
-                qDebug() << " and is a neighbor";
+                //   qDebug() << " and is a neighbor";
                 bee->setRole(Bee::RECRUIT);
             }
             ++inc;
@@ -701,17 +705,17 @@ void WorkerBee::evalNeighborFits()
         for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
         {
             bee = (*j);
-            qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
-                     << " in priority neighborhood " << prior;
+            // qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
+            //          << " in priority neighborhood " << prior;
 
             if (j == (*i).begin() + 1)
             {
                 bee->setRole(Bee::PRIORITY);
-                qDebug() << " and is the fittest neighbor";
+                //    qDebug() << " and is the fittest neighbor";
             }
             else
             {
-                qDebug() << " and is a neighbor";
+                //    qDebug() << " and is a neighbor";
                 bee->setRole(Bee::RECRUIT);
             }
 
@@ -725,5 +729,15 @@ void WorkerBee::evalNeighborFits()
 
 void WorkerBee::newGenMembers(QThread& thread)
 {
+    disconnectEverything(thread);
+    connect(&thread, SIGNAL(started()), this, SLOT(regenerate()), Qt::UniqueConnection);
+    connect(this, SIGNAL(quitRegenThread()), &thread, SLOT(quit()), Qt::UniqueConnection);
+}
 
+void WorkerBee::regenerate()
+{
+
+
+    emit quitRegenThread();
+    emit regenerated();
 }

@@ -126,8 +126,11 @@ class WorkerBee : public QObject
         void quitNeighborFitEvalThread();
         void neighborFitsEval();
 
+        void quitRegenThread();
+        void regenerated();
+
     public slots:
-        void genesis();
+        void generate();
 
         void foxholes();
 
@@ -137,6 +140,8 @@ class WorkerBee : public QObject
         void recruit();
 
         void evalNeighborFits();
+
+        void regenerate();
 
     private slots:
         void computeField();

@@ -15,10 +15,10 @@ MainWindow::MainWindow(QWidget* parent) :
     _okayToDraw = false;
     
     //when the thread finishes go to mapped slot
-    QObject::connect(&_workerBee, SIGNAL(beesGenerated()), this, SLOT(beesGenerated()));
-    QObject::connect(&_workerBee, SIGNAL(fieldGenerated()), this, SLOT(fieldGenerated()));
-    QObject::connect(&_workerBee, SIGNAL(foxholesGenerated()), &_workerBee, SLOT(computeField()));
-    QObject::connect(&_workerBee, SIGNAL(fitnessesEvaluated()), this, SLOT(fitnessesEvaluated()));
+    QObject::connect(&_workerBee, SIGNAL(beesGenerated()), this, SLOT(beesGenerated()),Qt::UniqueConnection);
+    QObject::connect(&_workerBee, SIGNAL(fieldGenerated()), this, SLOT(fieldGenerated()),Qt::UniqueConnection);
+    QObject::connect(&_workerBee, SIGNAL(foxholesGenerated()), &_workerBee, SLOT(computeField()),Qt::UniqueConnection);
+    QObject::connect(&_workerBee, SIGNAL(fitnessesEvaluated()), this, SLOT(fitnessesEvaluated()),Qt::UniqueConnection);
 
     //_workerBee.setConnections(_thread);
     _workerBee.moveToThread(&_thread);
@@ -118,7 +118,7 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::beesGenerated()
 {
-    _step = 4;
+    _step = 3;
     _day = -1;
     QString message = "Bees generated";
 
@@ -141,7 +141,7 @@ void MainWindow::beesGenerated()
         bound,
         power,
         deterministic,
-        d2,
+        d1,
         d2
     );
 
@@ -326,19 +326,18 @@ void MainWindow::fitnessesEvaluated()
 
     _ui->statusBar->showMessage(message);
 
+    //threaded call to this object that draws the bees & the hive
+      QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::initialDraw);
+     drawCall.waitForFinished();
+
+     /*
     if (_ui->stepBox->isChecked())
     {
-        initialDraw();
-
-        //threaded call to this object that draws the bees & the hive
-        // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::initialDraw);
-        //drawCall.waitForFinished();
     }
     else
-    {
-        //evaluate hive fitness
-        nextStep();
-    }
+*/
+        if (!_ui->stepBox->isChecked())
+            nextStep();
 }
 
 void MainWindow::initialDraw()
@@ -466,20 +465,25 @@ void MainWindow::nextStep()
     step and increment the day or draw what was just done and let the draw
     function increment the day.
       */
+   // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::drawStep);
+  // drawCall.waitForFinished();
 
+    ++_step;
+
+    if (_step == _STEPS)
+        ++_day;
+
+    _step %= _STEPS;
     int seasonLength = _ui->genCap->value();
 
     if (_day < seasonLength)
     {
-        ++_step;
+        drawStep();
 
-        if (_step == _STEPS + 1)
-        {
-            ++_day;
-            _step %= _STEPS + 1;
-        }
+        if(_thread.isRunning())
+            _thread.quit();
+        qDebug() << "step " << _step << " of ";
         qDebug() << "day " << _day;
-        qDebug() << "selecting case for step " << _step;
         QString message;
         disconnectEverything();
 
@@ -497,14 +501,8 @@ void MainWindow::nextStep()
 
                     _workerBee.setSiteSelectionMembers(_thread, sites, eliteSites);
 
-                    if (_ui->stepBox->isChecked())
-                    {
-                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(drawStep()));
-                    }
-                    else
-                    {
-                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()));
-                    }
+                    if (!_ui->stepBox->isChecked())
+                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()),Qt::UniqueConnection);
 
                     _thread.start();
                     message = "Selecting sites";
@@ -521,52 +519,46 @@ void MainWindow::nextStep()
 
                     _workerBee.setRecruitmentMembers(_thread, randomCut, deltaLambda, deltaPhi);
 
-                    if (_ui->stepBox->isChecked())
+                    if (!_ui->stepBox->isChecked())
                     {
-                        QObject::connect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
-                    }
-                    else
-                    {
-                        QObject::connect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()));
+                        QObject::connect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()),Qt::UniqueConnection);
                     }
 
-                    _thread.start();
                     message = "Recruiting bees";
+
+                    _thread.start();
 
                     _ui->statusBar->showMessage(message);
                     break;
                 }
 
             case 2:
-                _workerBee.setNeighborFitEvalMembs(_thread);
+            {
+                    _workerBee.setNeighborFitEvalMembs(_thread);
 
-                if (_ui->stepBox->isChecked())
-                {
-                    QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(drawStep()));
-                }
-                else
-                {
-                    QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()));
-                }
-                _thread.start();
-                break;
+                    if (!_ui->stepBox->isChecked())
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()),Qt::UniqueConnection);
+                    }
 
+                    _thread.start();
+                    break;
+}
             case 3:
-                _workerBee.newGenMembers(_thread);
+                {
+                    _workerBee.newGenMembers(_thread);
 
-                if (_ui->stepBox->isChecked())
-                {
-                    QObject::connect(&_workerBee, SIGNAL(newGen()), this, SLOT(drawStep()));
+                    if (!_ui->stepBox->isChecked())
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(regenerated()), this, SLOT(nextStep()),Qt::UniqueConnection);
+                    }
+
+                    _thread.start();
+                    break;
                 }
-                else
-                {
-                    QObject::connect(&_workerBee, SIGNAL(newGen()), this, SLOT(nextStep()));
-                }
-                _thread.start();
-                break;
 
             default:
-                nextStep();
+                qDebug() << "invalid step";//nextStep();
                 break;
         }
     }
@@ -574,39 +566,46 @@ void MainWindow::nextStep()
 
 void MainWindow::drawStep()
 {
+    stringstream ss;
     QString message;
-    qDebug() << "drawing step " << _step;
+    //qDebug() << "drawing step " << _step;
     switch (_step)
     {
             /*
             redraw scene now that bee roles have ben updated
             */
         case 0:
-            message = "Sites selected";
+            ss << "Sites selected on for step " << _step << " of day " << _day;
+            message = message.fromStdString(ss.str());
             _ui->statusBar->showMessage(message);
             initialDraw();
             break;
 
         case 1:
-            message = "Bees recruited";
+            ss << "Bees recruited for step " << _step << " of day " << _day;
+            message = message.fromStdString(ss.str());
             _ui->statusBar->showMessage(message);
             initialDraw();
             drawNeighborhoodBoxes();
             break;
 
         case 2:
-            message = "Fittest selected per neighborhood";
+           ss << "Fittest selected per neighborhood for step " << _step << " of day " << _day;
+           message = message.fromStdString(ss.str());
             _ui->statusBar->showMessage(message);
             initialDraw();
             drawNeighborhoodBoxes();
             break;
 
         case 3:
-
+            ss << "Colony regenerated for step " << _step << " of day " << _day;
+            message = message.fromStdString(ss.str());
+             _ui->statusBar->showMessage(message);
             break;
 
         default:
             qDebug() << "step to draw isn't valid";
+            break;
     }
 }
 
@@ -617,12 +616,15 @@ void MainWindow::on_stepButton_clicked()
 
 void MainWindow::disconnectEverything()
 {
-    QObject::disconnect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(drawStep()));
+   // QObject::disconnect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(drawStep()));
     QObject::disconnect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()));
 
-    QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
+   // QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
     QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()));
 
-    QObject::disconnect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(drawStep()));
+   // QObject::disconnect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(drawStep()));
     QObject::disconnect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()));
+
+   // QObject::disconnect(&_workerBee, SIGNAL(regenerated()), this, SLOT(drawStep()));
+    QObject::disconnect(&_workerBee, SIGNAL(regenerated()), this, SLOT(nextStep()));
 }

@@ -392,6 +392,57 @@ void MainWindow::initialDraw()
     }
 }
 
+void MainWindow::drawNeighborhoodBoxes()
+{
+    //for all the elite neighborhoods
+    for (vector<vector<Bee* > >::const_iterator i = _workerBee.getEliteNeighborhoods()->begin();
+         i != _workerBee.getEliteNeighborhoods()->end(); ++i)
+    {
+        drawBox((*i));
+    }
+    //for all the elite neighborhoods
+    for (vector<vector<Bee* > >::const_iterator i = _workerBee.getPriorityNeighborhoods()->begin();
+         i != _workerBee.getPriorityNeighborhoods()->end(); ++i)
+    {
+        drawBox((*i));
+    }
+}
+
+void MainWindow::drawBox(vector<Bee* > neighborhood)
+{
+    Bee* mainBee = neighborhood.front();
+    int fieldWidth = _ui->fieldWidth->value();
+    int fieldHeight = _ui->fieldHeight->value();
+
+    int deltaLambda = fieldWidth * _ui->deltaLamba->value();
+    deltaLambda /= 100;
+    int deltaPhi = fieldHeight * _ui->deltaPhi->value();
+    deltaPhi /= 100;
+
+    int boundaryWest = mainBee->getPoint().x() - deltaLambda;
+
+    int boundaryNorth = mainBee->getPoint().y() - deltaPhi;
+
+    //deltaLambda = boundaryEast - boundaryWest;
+    //deltaPhi = boundarySouth - boundaryNorth;
+
+    double top = (double) boundaryNorth / fieldHeight;
+    top *= _ui->graphicsView->height();
+    double left = (double) boundaryWest / fieldWidth;
+    left *= _ui->graphicsView->width();
+    double width = (double) (deltaLambda * 2) / fieldWidth;
+    width *= _ui->graphicsView->width();
+    double height = (double) (deltaPhi * 2) / fieldHeight;
+    height *= _ui->graphicsView->height();
+
+    _scene->addRect
+    (
+        QRect(left + (width / 2), top  + (height / 2), width, height),
+        QPen(QBrush(Qt::black),2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin),
+        QBrush()
+    );
+}
+
 void MainWindow::nextStep()
 {
     /*
@@ -454,7 +505,7 @@ void MainWindow::nextStep()
                     double deltaLambda = _ui->deltaLamba->value();
                     double deltaPhi = _ui->deltaPhi->value();
 
-                    _workerBee.setRecruitmentMembers(_thread, randomCut,deltaLambda,deltaPhi);
+                    _workerBee.setRecruitmentMembers(_thread, randomCut, deltaLambda, deltaPhi);
 
                     if (_ui->stepBox->isChecked())
                     {
@@ -504,6 +555,7 @@ void MainWindow::drawStep()
             message = "Bees recruited";
             _ui->statusBar->showMessage(message);
             initialDraw();
+            drawNeighborhoodBoxes();
             break;
 
         case 2:

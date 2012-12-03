@@ -43,6 +43,8 @@ class MainWindow : public QMainWindow
         bool eventFilter(QObject* , QEvent*);
 
         QGraphicsScene* _scene;
+        bool setBackground();
+        void initialDraw();
         int _graduation;
         int _upperBound;
         int _lowerBound;
@@ -54,8 +56,8 @@ class MainWindow : public QMainWindow
         QImage generateContourMap(const double**);
         QRgb getColor(double);
         bool _okayToDraw ;
-        void initialDraw();
-        bool setBackground();
+        void drawNeighborhoodBoxes();
+        void drawBox(vector<Bee* > );
 
         int _step;
         int _day;

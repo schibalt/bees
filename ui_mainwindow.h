@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sun Dec 2 18:56:46 2012
+** Created: Sun Dec 2 21:30:42 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -154,7 +154,7 @@ public:
         initialPop->setMaximumSize(QSize(50, 16777215));
         initialPop->setMinimum(1);
         initialPop->setMaximum(50000);
-        initialPop->setValue(50);
+        initialPop->setValue(60);
 
         gridLayout_2->addWidget(initialPop, 0, 1, 1, 1);
 
@@ -213,7 +213,7 @@ public:
         randCutBox = new QDoubleSpinBox(groupBox_3);
         randCutBox->setObjectName(QString::fromUtf8("randCutBox"));
         randCutBox->setMaximumSize(QSize(59, 16777215));
-        randCutBox->setValue(10);
+        randCutBox->setValue(25);
 
         gridLayout_4->addWidget(randCutBox, 7, 1, 1, 1);
 
@@ -241,7 +241,7 @@ public:
 
         deltaLamba = new QDoubleSpinBox(groupBox_3);
         deltaLamba->setObjectName(QString::fromUtf8("deltaLamba"));
-        deltaLamba->setValue(5);
+        deltaLamba->setValue(7);
 
         gridLayout_4->addWidget(deltaLamba, 3, 1, 1, 1);
 
@@ -262,7 +262,7 @@ public:
 
         deltaPhi = new QDoubleSpinBox(groupBox_3);
         deltaPhi->setObjectName(QString::fromUtf8("deltaPhi"));
-        deltaPhi->setValue(5);
+        deltaPhi->setValue(7);
 
         gridLayout_4->addWidget(deltaPhi, 5, 1, 1, 1);
 

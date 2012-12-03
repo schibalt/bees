@@ -134,7 +134,7 @@
              <number>50000</number>
             </property>
             <property name="value">
-             <number>50</number>
+             <number>60</number>
             </property>
            </widget>
           </item>
@@ -223,7 +223,7 @@
              </size>
             </property>
             <property name="value">
-             <double>10.000000000000000</double>
+             <double>25.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -264,7 +264,7 @@
           <item row="3" column="1">
            <widget class="QDoubleSpinBox" name="deltaLamba">
             <property name="value">
-             <double>5.000000000000000</double>
+             <double>7.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -292,7 +292,7 @@
           <item row="5" column="1">
            <widget class="QDoubleSpinBox" name="deltaPhi">
             <property name="value">
-             <double>5.000000000000000</double>
+             <double>7.000000000000000</double>
             </property>
            </widget>
           </item>

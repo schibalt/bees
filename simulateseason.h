@@ -44,6 +44,8 @@ class WorkerBee : public QObject
         //site selection
         void setSiteSelectionMembers(QThread& , int , int);
        void setRecruitmentMembers(QThread& , double ,double ,double );
+       const vector<vector< Bee* > >* getEliteNeighborhoods();
+       const vector<vector< Bee* > >* getPriorityNeighborhoods();
 
     private:
         void disconnectEverything(QThread&);

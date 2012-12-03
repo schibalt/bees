@@ -491,6 +491,7 @@ void WorkerBee::recruit()
 
     _eliteNeighborhoods.clear();
     _priorityNeighborhoods.clear();
+    Bee* neighborBee;
 
     for (int eliteHood = 0; eliteHood < elites; eliteHood++)
     {
@@ -500,7 +501,9 @@ void WorkerBee::recruit()
 
         for (int eliteNeighbor = 0; eliteNeighbor < perEliteSite; eliteNeighbor++)
         {
-            newEliteNeighborhood.push_back(&_bees[bee]);
+            neighborBee = &_bees[bee];
+            neighborBee->setRole(Bee::RECRUIT);
+            newEliteNeighborhood.push_back(neighborBee);
             ++bee;
         }
         _eliteNeighborhoods.push_back(newEliteNeighborhood);
@@ -515,13 +518,14 @@ void WorkerBee::recruit()
 
         for (int prioritizedNeighbor = 0; prioritizedNeighbor < perPrioritySite; prioritizedNeighbor++)
         {
-            newPriorityNeighborhood.push_back(&_bees[bee]);
+            neighborBee = &_bees[bee];
+            neighborBee->setRole(Bee::RECRUIT);
+            newPriorityNeighborhood.push_back(neighborBee);
             ++bee;
         }
         _priorityNeighborhoods.push_back(newPriorityNeighborhood);
         moveToSite(_priorityNeighborhoods.back());
     }
-
 
     emit quitRecruitmentThread();
     emit beesRecruited();
@@ -570,7 +574,7 @@ void WorkerBee::moveToSite(vector<Bee* > neighborhood)
     double fieldPtQuality;
     double distance;
     double fitness;
-    int inc = 0;
+    //int inc = 0;
 
     int newX;
     int newY;
@@ -592,9 +596,21 @@ void WorkerBee::moveToSite(vector<Bee* > neighborhood)
 
         fitness = fieldPtQuality / distance;
         //qDebug() << "bee " << inc << " fitness is " << fitness;
+        //++inc;
 
         bee->setFitness(fitness);
-        ++inc;
     }
-    sort(neighborhood.begin(), neighborhood.end());
+
+    //save for next step
+    //sort(neighborhood.begin(), neighborhood.end());
+}
+
+const vector<vector< Bee* > >* WorkerBee::getEliteNeighborhoods()
+{
+    return const_cast<const vector<vector< Bee* > >* >(&_eliteNeighborhoods);
+}
+
+const vector<vector< Bee* > >* WorkerBee::getPriorityNeighborhoods()
+{
+    return const_cast<const vector<vector< Bee* > >* >(&_priorityNeighborhoods);
 }

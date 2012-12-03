@@ -380,7 +380,9 @@ void MainWindow::initialDraw()
         double yRatio = (double) bee.getPoint().y() / fieldHeight;
 
         int xPos = xRatio * _ui->graphicsView->width();
+        xPos -= 16;
         int yPos = yRatio * _ui->graphicsView->height();
+        yPos -= 16;
 
         if (xRatio < 0 || yRatio < 0 || xRatio >= 1 || yRatio >= 1)
             qDebug() << "ratios wrong" << endl;
@@ -430,15 +432,15 @@ void MainWindow::drawBox(vector<Bee* > neighborhood)
     top *= _ui->graphicsView->height();
     double left = (double) boundaryWest / fieldWidth;
     left *= _ui->graphicsView->width();
-    double width = (double) (deltaLambda * 2) / fieldWidth;
+    double width = (double)(deltaLambda * 2) / fieldWidth;
     width *= _ui->graphicsView->width();
-    double height = (double) (deltaPhi * 2) / fieldHeight;
+    double height = (double)(deltaPhi * 2) / fieldHeight;
     height *= _ui->graphicsView->height();
 
     _scene->addRect
     (
-        QRect(left + (width / 2), top  + (height / 2), width, height),
-        QPen(QBrush(Qt::black),2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin),
+        QRect(left /*+ (width / 2)*/, top /* + (height / 2)*/, width, height),
+        QPen(QBrush(Qt::black), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin),
         QBrush()
     );
 }
@@ -524,6 +526,17 @@ void MainWindow::nextStep()
                 }
 
             case 2:
+                _workerBee.setNeighborFitEvalMembs(_thread);
+
+                if (_ui->stepBox->isChecked())
+                {
+                    QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(drawStep()));
+                }
+                else
+                {
+                    QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()));
+                }
+                _thread.start();
                 break;
 
             case 3:
@@ -559,7 +572,10 @@ void MainWindow::drawStep()
             break;
 
         case 2:
-
+            message = "Fittest selected per neighborhood";
+            _ui->statusBar->showMessage(message);
+            initialDraw();
+            drawNeighborhoodBoxes();
             break;
 
         case 3:
@@ -583,4 +599,7 @@ void MainWindow::disconnectEverything()
 
     QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
     QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()));
+
+    QObject::disconnect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(drawStep()));
+    QObject::disconnect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()));
 }

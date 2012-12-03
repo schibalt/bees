@@ -26,6 +26,10 @@ void WorkerBee::disconnectEverything(QThread& thread)
     //recruit bees
     disconnect(&thread, SIGNAL(started()), this, SLOT(recruit()));
     disconnect(this, SIGNAL(quitRecruitmentThread()), &thread, SLOT(quit()));
+
+    //evaluate fitnesses of bees in each neighborhood
+    disconnect(&thread, SIGNAL(started()), this, SLOT(evalNeighborFits()));
+    disconnect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()));
 }
 
 void WorkerBee::setGenesisMembers(
@@ -407,18 +411,20 @@ void WorkerBee::selectSites()
 
     int eliteOffset =  1 + _eliteSites;
     int priorityOffset = 1 + _sites;
+    Bee* bee;
 
     for (vector<Bee >::iterator i = _bees.end() - eliteOffset; i != _bees.end() - priorityOffset; --i)
     {
+
         (*i).setRole(Bee::PRIORITY);
-        _priorityBees.push_back((*i));
+        _priorityBees.push_back(&(*i));
         qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
     }
 
     for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - eliteOffset; --i)
     {
         (*i).setRole(Bee::ELITE);
-        _eliteBees.push_back((*i));
+        _eliteBees.push_back(&(*i));
         qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
     }
     emit quitSiteSelectThread();
@@ -496,7 +502,7 @@ void WorkerBee::recruit()
     for (int eliteHood = 0; eliteHood < elites; eliteHood++)
     {
         vector<Bee* > newEliteNeighborhood;
-        newEliteNeighborhood.push_back(&_eliteBees[eliteHood]);
+        newEliteNeighborhood.push_back(_eliteBees[eliteHood]);
         ++bee;
 
         for (int eliteNeighbor = 0; eliteNeighbor < perEliteSite; eliteNeighbor++)
@@ -513,7 +519,7 @@ void WorkerBee::recruit()
     for (int priorityHood = 0; priorityHood < prioritized; priorityHood++)
     {
         vector<Bee* > newPriorityNeighborhood;
-        newPriorityNeighborhood.push_back(&_priorityBees[priorityHood]);
+        newPriorityNeighborhood.push_back(_priorityBees[priorityHood]);
         ++bee;
 
         for (int prioritizedNeighbor = 0; prioritizedNeighbor < perPrioritySite; prioritizedNeighbor++)
@@ -581,7 +587,7 @@ void WorkerBee::moveToSite(vector<Bee* > neighborhood)
 
     int seed = rand();
 
-    for (vector<Bee* >::iterator i = neighborhood.begin(); i != neighborhood.end(); ++i)
+    for (vector<Bee* >::iterator i = neighborhood.begin() + 1; i != neighborhood.end(); ++i)
     {
         Bee* bee = (*i);
 
@@ -600,9 +606,6 @@ void WorkerBee::moveToSite(vector<Bee* > neighborhood)
 
         bee->setFitness(fitness);
     }
-
-    //save for next step
-    //sort(neighborhood.begin(), neighborhood.end());
 }
 
 const vector<vector< Bee* > >* WorkerBee::getEliteNeighborhoods()
@@ -613,4 +616,94 @@ const vector<vector< Bee* > >* WorkerBee::getEliteNeighborhoods()
 const vector<vector< Bee* > >* WorkerBee::getPriorityNeighborhoods()
 {
     return const_cast<const vector<vector< Bee* > >* >(&_priorityNeighborhoods);
+}
+
+void WorkerBee::setNeighborFitEvalMembs(QThread& thread)
+{
+    disconnectEverything(thread);
+    connect(&thread, SIGNAL(started()), this, SLOT(evalNeighborFits()));
+    connect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()));
+}
+
+struct compareBees
+{
+    bool operator()(Bee* oneBee, Bee* anotherBee)
+    {
+        return *oneBee < *anotherBee;
+    }
+};
+
+void WorkerBee::evalNeighborFits()
+{
+    int inc = 0;
+    int elite = 1;
+    Bee* bee ;
+    //for all the elite neighborhoods
+    for (vector<vector<Bee* > >::iterator i = _eliteNeighborhoods.begin();
+         i != _eliteNeighborhoods.end(); ++i)
+    {
+        inc = 0;
+
+        sort((*i).begin(), (*i).end(),compareBees());
+        reverse((*i).begin(), (*i).end());
+        /*
+        */
+        for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
+        {
+            bee = (*j);
+            qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
+                     << " in elite neighborhood " << elite;
+
+            if (j == (*i).begin())
+            {
+                qDebug() << " and is the fittest neighbor";
+                bee->setRole(Bee::PRIORITY);
+            }
+            else
+            {
+                qDebug() << " and is a neighbor";
+                bee->setRole(Bee::RECRUIT);
+            }
+            ++inc;
+        }
+
+        ++elite;
+    }
+
+    int prior = 1;
+
+    //for all the elite neighborhoods
+    for (vector<vector<Bee* > >::iterator i = _priorityNeighborhoods.begin();
+         i != _priorityNeighborhoods.end(); ++i)
+    {
+        inc = 0;
+
+        sort((*i).begin(), (*i).end(), compareBees());
+        reverse((*i).begin(), (*i).end());
+        /*
+        */
+
+        for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
+        {
+            bee = (*j);
+            qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
+                     << " in priority neighborhood " << prior;
+
+            if (j == (*i).begin())
+            {
+                bee->setRole(Bee::PRIORITY);
+                qDebug() << " and is the fittest neighbor";
+            }
+            else
+            {
+                qDebug() << " and is a neighbor";
+                bee->setRole(Bee::RECRUIT);
+            }
+
+            ++inc;
+        }
+        ++prior;
+    }
+    emit quitNeighborFitEvalThread();
+    emit neighborFitsEval();
 }

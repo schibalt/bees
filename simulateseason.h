@@ -47,6 +47,10 @@ class WorkerBee : public QObject
        const vector<vector< Bee* > >* getEliteNeighborhoods();
        const vector<vector< Bee* > >* getPriorityNeighborhoods();
 
+       //neighborhood fitness evaluation
+
+       void setNeighborFitEvalMembs(QThread&);
+
     private:
         void disconnectEverything(QThread&);
 
@@ -79,8 +83,8 @@ class WorkerBee : public QObject
         int _seasonLength;
 
         //step 1
-        vector<Bee > _priorityBees;
-        vector<Bee > _eliteBees;
+        vector<Bee* > _priorityBees;
+        vector<Bee* > _eliteBees;
 
         //step 2
         void evaluateFitnesses(vector<Bee >);
@@ -93,6 +97,8 @@ class WorkerBee : public QObject
         double _priorityWeight;
         vector<vector< Bee* > > _eliteNeighborhoods;
         vector<vector< Bee* > > _priorityNeighborhoods;
+
+        //step 3
 
     signals:
         void quitBeeGenThread();
@@ -111,6 +117,9 @@ class WorkerBee : public QObject
         void quitRecruitmentThread();
         void beesRecruited();
 
+        void quitNeighborFitEvalThread();
+        void neighborFitsEval();
+
     public slots:
         void genesis();
 
@@ -120,6 +129,8 @@ class WorkerBee : public QObject
 
         void selectSites();
         void recruit();
+
+        void evalNeighborFits();
 
     private slots:
         void computeField();

@@ -57,13 +57,13 @@ class MainWindow : public QMainWindow
         QRgb getColor(double);
         bool _okayToDraw ;
         void drawNeighborhoodBoxes();
-        void drawBox(vector<Bee* > );
+        void drawBox(vector<Bee* >);
 
         int _step;
         int _day;
         const static int _STEPS = 4;
 
-void disconnectEverything();
+        void disconnectEverything();
 
     public slots:
         void beesGenerated();

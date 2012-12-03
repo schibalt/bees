@@ -6,7 +6,10 @@ MainWindow::MainWindow(QWidget* parent) :
     _ui(new Ui::MainWindow)
 {
     _ui->setupUi(this);
-    _ui->stepButton->installEventFilter(this);
+
+    //don't know how this works
+    //_ui->stepButton->installEventFilter(this);
+
     _scene = new QGraphicsScene(this);
     _ui->graphicsView->setScene(_scene);
     _okayToDraw = false;
@@ -16,7 +19,7 @@ MainWindow::MainWindow(QWidget* parent) :
     QObject::connect(&_workerBee, SIGNAL(fieldGenerated()), this, SLOT(fieldGenerated()));
     QObject::connect(&_workerBee, SIGNAL(foxholesGenerated()), &_workerBee, SLOT(computeField()));
     QObject::connect(&_workerBee, SIGNAL(fitnessesEvaluated()), this, SLOT(fitnessesEvaluated()));
-    
+
     //_workerBee.setConnections(_thread);
     _workerBee.moveToThread(&_thread);
 }
@@ -41,11 +44,12 @@ void MainWindow::changeEvent(QEvent* e)
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
 {
-    if (event->type() == QEvent::MouseButtonPress)
+    qDebug() << object;
+
+    if (event->type() == QEvent::MouseButtonPress && object == _ui->stepButton)
     {
-        // Turn timer back on
-        qDebug() << "change algorithm state" << endl;
     }
+
     return false;
 }
 
@@ -114,8 +118,14 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::beesGenerated()
 {
-    qDebug() << "bees generated";
-    
+    _step = 4;
+    _day = -1;
+    QString message = "Bees generated";
+
+    _ui->statusBar->showMessage(message);
+    qDebug() << "bees have been generated and";
+    _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
+
     int foxholes = _ui->foxholes->value();
     int maxima = _ui->maxima->value();
     int bound = _ui->bound->value();
@@ -130,15 +140,18 @@ void MainWindow::beesGenerated()
         power,
         deterministic
     );
-    
-    qDebug() << "bees have been generated and";
-    _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
+
     _thread.start();
 }
 
 void MainWindow::fieldGenerated()
 {
+    QString message = "Field generated";
+
+    _ui->statusBar->showMessage(message);
     qDebug() << "field has been generated and";
+    _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
+
     ofstream foxholeFilestream;
     char foxholeFilename[] = "foxholes.txt";
     foxholeFilestream.open(foxholeFilename, ios::out);
@@ -160,136 +173,8 @@ void MainWindow::fieldGenerated()
     setGraduation(F);
     contourMap = generateContourMap(F);
 
-    int sites = _ui->sites->value();
-    int eliteSites = _ui->eliteSites->value();
-
-    _thread.isRunning() ? qDebug() << "thread is running" : qDebug() << "thread isn't running";
-    _workerBee.setFitnessEvalMembers(_thread, sites, eliteSites);
+    _workerBee.setFitnessEvalMembers(_thread);
     _thread.start();
-}
-
-void MainWindow::fitnessesEvaluated()
-{
-    if (_ui->stepBox->isChecked())
-    {
-        initialDraw();
-
-        //threaded call to this object that draws the bees & the hive
-        // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::initialDraw);
-        //drawCall.waitForFinished();
-    }
-    else
-    {
-        //evaluate hive fitness
-        _step = 1;
-        _day = 0;
-        nextStep();
-    }
-}
-
-void MainWindow::nextStep()
-{
-    /*
-      *run the step that has to be run
-      *
-      *before returning from the function decide whether or not to increment the day
-      *and run the next step or draw what was just done and let the draw function
-      *increment the day.
-      */
-    qDebug() << _day;
-    
-    int seasonLength = _ui->genCap->value();
-    
-    if (!_ui->stepBox->isChecked() && _day < seasonLength)
-    {
-        switch (_step)
-        {
-                /*select sites for neighborhood search.
-                  iterate through the entire population and pick the
-                  [site variable] best sites
-                  */
-            case 1:
-                break;
-                
-                
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            default:
-                qDebug();
-        }
-        
-        ++_day;
-        ++_step;
-        nextStep();
-    }
-    else
-        drawStep();
-}
-
-void MainWindow::drawStep()
-{
-
-}
-
-QImage MainWindow::generateContourMap(const double** foxholes)
-{
-    WorkerBee workerBee;
-    //workerBee.computeField(foxholes);
-    
-    int fieldWidth = _ui->fieldWidth->value();
-    int fieldHeight = _ui->fieldHeight->value();
-    //QSize fieldDims = QSize(fieldWidth, fieldHeight);
-    
-    QImage contourMap
-    (
-        QSize(fieldWidth,  fieldHeight),
-        QImage::Format_RGB32
-    );
-    
-    int m = fieldHeight;
-    int n = fieldWidth;
-    
-    const double** field = _workerBee.getField();
-    
-    ofstream fieldFilestream;
-    char fieldFilename[] = "fieldfromwindow.txt";
-    fieldFilestream.open(fieldFilename, ios::out);
-    
-    for (int i = 0; i < m; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            fieldFilestream << field[i][j] << " ";
-        }
-        fieldFilestream << endl;
-    }
-    fieldFilestream.close();
-    
-    QRgb color;
-    double value;
-    
-    for (int i = 0; i < m; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            value = field[i][j];
-            color = getColor(value);
-            contourMap.setPixel(j, i, color);
-        }
-    }
-    stringstream filename;
-    
-    filename << /*QDir::currentPath().toStdString() <<*/ "contourMap" << abs(rand() / 2) << ".jpg";
-    QImageWriter writer(QString::fromStdString(filename.str()), "jpg");
-    //writer.write(contourMap);
-    //setBackground(contourMap);
-    return contourMap;
 }
 
 void MainWindow::setGraduation(const double** foxholes)
@@ -317,15 +202,70 @@ void MainWindow::setGraduation(const double** foxholes)
     _graduation = (double) difference / _GRADES;
 }
 
+QImage MainWindow::generateContourMap(const double** foxholes)
+{
+    WorkerBee workerBee;
+    //workerBee.computeField(foxholes);
+
+    int fieldWidth = _ui->fieldWidth->value();
+    int fieldHeight = _ui->fieldHeight->value();
+    //QSize fieldDims = QSize(fieldWidth, fieldHeight);
+
+    QImage contourMap
+    (
+        QSize(fieldWidth,  fieldHeight),
+        QImage::Format_RGB32
+    );
+
+    int m = fieldHeight;
+    int n = fieldWidth;
+
+    const double** field = _workerBee.getField();
+
+    ofstream fieldFilestream;
+    char fieldFilename[] = "fieldfromwindow.txt";
+    fieldFilestream.open(fieldFilename, ios::out);
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            fieldFilestream << field[i][j] << " ";
+        }
+        fieldFilestream << endl;
+    }
+    fieldFilestream.close();
+
+    QRgb color;
+    double value;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            value = field[i][j];
+            color = getColor(value);
+            contourMap.setPixel(j, i, color);
+        }
+    }
+    stringstream filename;
+
+    filename << /*QDir::currentPath().toStdString() <<*/ "contourMap" << abs(rand() / 2) << ".jpg";
+    QImageWriter writer(QString::fromStdString(filename.str()), "jpg");
+    //writer.write(contourMap);
+    //setBackground(contourMap);
+    return contourMap;
+}
+
 QRgb MainWindow::getColor(double value)
 {
     bool isGrade = false;
-    
+
     for (int grade = 1; grade <= _GRADES; grade++)
     {
         if (value < _lowerBound + _graduation * grade)
             isGrade = true;
-            
+
         if (isGrade)
         {
             switch (grade - 1)
@@ -368,10 +308,31 @@ QRgb MainWindow::getColor(double value)
     return qRgb(255, 255, 255);
 }
 
+void MainWindow::fitnessesEvaluated()
+{
+    QString message = "Colony fitness evaluated";
+
+    _ui->statusBar->showMessage(message);
+
+    if (_ui->stepBox->isChecked())
+    {
+        initialDraw();
+
+        //threaded call to this object that draws the bees & the hive
+        // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::initialDraw);
+        //drawCall.waitForFinished();
+    }
+    else
+    {
+        //evaluate hive fitness
+        nextStep();
+    }
+}
+
 void MainWindow::initialDraw()
 {
     setBackground();
-    
+
     int fieldWidth = _ui->fieldWidth->value();
     int fieldHeight = _ui->fieldHeight->value();
 
@@ -388,7 +349,7 @@ void MainWindow::initialDraw()
     QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
     Qgpmi->setPos(xPos, yPos);
     (*_scene).addItem(Qgpmi);
-    
+
     const vector<Bee >* bees = _workerBee.getBees();
     foreach(Bee bee, *bees)
     {
@@ -414,16 +375,16 @@ void MainWindow::initialDraw()
         }
 
         QGraphicsPixmapItem* Qgpmi = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-        
+
         double xRatio = (double) bee.getPoint().x() / fieldWidth;
         double yRatio = (double) bee.getPoint().y() / fieldHeight;
-        
+
         int xPos = xRatio * _ui->graphicsView->width();
         int yPos = yRatio * _ui->graphicsView->height();
-        
+
         if (xRatio < 0 || yRatio < 0 || xRatio >= 1 || yRatio >= 1)
             qDebug() << "ratios wrong" << endl;
-            
+
         //qDebug() << "graphicsview is " << ui->graphicsView->width() << ", " << ui->graphicsView->height() << endl;
         //qDebug() << "pos is " << xPos << ", " << yPos << endl;
         Qgpmi->setPos(xPos, yPos);
@@ -431,7 +392,143 @@ void MainWindow::initialDraw()
     }
 }
 
+void MainWindow::nextStep()
+{
+    /*
+      *run the step that has to be run
+      *
+      *before returning from the function decide whether or not to run the next
+    step and increment the day or draw what was just done and let the draw
+    function increment the day.
+      */
+
+    int seasonLength = _ui->genCap->value();
+
+    if (_day < seasonLength)
+    {
+        ++_step;
+
+        if (_step == _STEPS + 1)
+        {
+            ++_day;
+            _step %= _STEPS + 1;
+        }
+        qDebug() << "day " << _day;
+        qDebug() << "selecting case for step " << _step;
+        QString message;
+        disconnectEverything();
+
+        switch (_step)
+        {
+                /*
+                select sites for neighborhood search.
+                iterate through the entire population and
+                pick the [site variable] best sites
+                */
+            case 0:
+                {
+                    int sites = _ui->sites->value();
+                    int eliteSites = _ui->eliteSites->value();
+
+                    _workerBee.setSiteSelectionMembers(_thread, sites, eliteSites);
+
+                    if (_ui->stepBox->isChecked())
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(drawStep()));
+                    }
+                    else
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()));
+                    }
+
+                    _thread.start();
+                    message = "Selecting sites";
+
+                    _ui->statusBar->showMessage(message);
+                    break;
+                }
+
+            case 1:
+                {
+                    double randomCut = _ui->randCutBox->value();
+                    double deltaLambda = _ui->deltaLamba->value();
+                    double deltaPhi = _ui->deltaPhi->value();
+
+                    _workerBee.setRecruitmentMembers(_thread, randomCut,deltaLambda,deltaPhi);
+
+                    if (_ui->stepBox->isChecked())
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
+                    }
+                    else
+                    {
+                        QObject::connect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()));
+                    }
+
+                    _thread.start();
+                    message = "Recruiting bees";
+
+                    _ui->statusBar->showMessage(message);
+                    break;
+                }
+
+            case 2:
+                break;
+
+            case 3:
+                break;
+
+            default:
+                nextStep();
+                break;
+        }
+    }
+}
+
+void MainWindow::drawStep()
+{
+    QString message;
+    qDebug() << "drawing step " << _step;
+    switch (_step)
+    {
+            /*
+            redraw scene now that bee roles have ben updated
+            */
+        case 0:
+            message = "Sites selected";
+            _ui->statusBar->showMessage(message);
+            initialDraw();
+            break;
+
+        case 1:
+            message = "Bees recruited";
+            _ui->statusBar->showMessage(message);
+            initialDraw();
+            break;
+
+        case 2:
+
+            break;
+
+        case 3:
+
+            break;
+
+        default:
+            qDebug() << "step to draw isn't valid";
+    }
+}
+
 void MainWindow::on_stepButton_clicked()
 {
     nextStep();
+}
+
+void MainWindow::disconnectEverything()
+{
+    QObject::disconnect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(drawStep()));
+    QObject::disconnect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()));
+
+    QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(drawStep()));
+    QObject::disconnect(&_workerBee, SIGNAL(beesRecruited()), this, SLOT(nextStep()));
 }

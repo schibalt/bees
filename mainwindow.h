@@ -36,46 +36,43 @@ class MainWindow : public QMainWindow
         void changeEvent(QEvent* e);
 
     private:
-        void resizeEvent(QResizeEvent* event);
-        void initialDraw();
-        QImage generateContourMap(const double**);
-        void setGraduation(const double**);
-        void nextStep();
-        QRgb getColor(double);
-        bool eventFilter(QObject* , QEvent*);
-        bool setBackground();
-        void drawStep();
-        void computeField();
-
         Ui::MainWindow* _ui;
+        QThread _thread;
         WorkerBee _workerBee;
+        void resizeEvent(QResizeEvent* event);
+        bool eventFilter(QObject* , QEvent*);
 
         QGraphicsScene* _scene;
-        QThread _thread;
-        QImage contourMap;
-
         int _graduation;
         int _upperBound;
         int _lowerBound;
+        QImage contourMap;
+        const static int _GRADES = 11;
+
+        void computeField();
+        void setGraduation(const double**);
+        QImage generateContourMap(const double**);
+        QRgb getColor(double);
+        bool _okayToDraw ;
+        void initialDraw();
+        bool setBackground();
+
         int _step;
         int _day;
-        int steps;
+        const static int _STEPS = 4;
 
-        const static int _GRADES = 11;
-        bool _okayToDraw ;
+void disconnectEverything();
 
     public slots:
         void beesGenerated();
         void fieldGenerated();
-void fitnessesEvaluated();
+        void fitnessesEvaluated();
+
+        //main loop
+        void nextStep();
+        void drawStep();
 
     private slots:
-        /*
-                void on_fieldHeight_valueChanged(int);
-                void on_fieldWidth_valueChanged(int);
-                void on_initialPop_valueChanged(int);
-                void on_genCap_valueChanged(int);
-        */
         void on_stepButton_clicked();
         void on_pushButton_clicked();
 };

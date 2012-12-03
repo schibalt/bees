@@ -14,7 +14,7 @@ public:
     Bee(QPoint, QSize);
     void setPoint(QPoint );
     const QPoint getPoint();
-    void setPointFieldRandom(const QPoint, const QSize );
+    void setFieldPtRandom(const QPoint, const QSize );
     void setFitness(double);
     void setRole(int );
     int getRole();

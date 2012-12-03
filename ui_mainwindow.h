@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sun Dec 2 11:00:21 2012
+** Created: Sun Dec 2 18:56:46 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -56,9 +56,16 @@ public:
     QLabel *label_3;
     QLabel *label_7;
     QSpinBox *sites;
-    QDoubleSpinBox *doubleSpinBox;
+    QDoubleSpinBox *randCutBox;
     QCheckBox *stepBox;
     QPushButton *stepButton;
+    QLabel *label_12;
+    QLabel *label_13;
+    QDoubleSpinBox *deltaLamba;
+    QLabel *label_14;
+    QLabel *label_15;
+    QLabel *label_16;
+    QDoubleSpinBox *deltaPhi;
     QPushButton *pushButton;
     QGroupBox *groupBox_4;
     QGridLayout *gridLayout_5;
@@ -79,7 +86,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(900, 604);
+        MainWindow->resize(900, 662);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -93,14 +100,13 @@ public:
 
         groupBox = new QGroupBox(centralWidget);
         groupBox->setObjectName(QString::fromUtf8("groupBox"));
-        groupBox->setMinimumSize(QSize(134, 0));
+        groupBox->setMinimumSize(QSize(0, 543));
         gridLayout_3 = new QGridLayout(groupBox);
         gridLayout_3->setSpacing(6);
         gridLayout_3->setContentsMargins(11, 11, 11, 11);
         gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
         groupBox_2 = new QGroupBox(groupBox);
         groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
-        groupBox_2->setMinimumSize(QSize(0, 183));
         gridLayout_2 = new QGridLayout(groupBox_2);
         gridLayout_2->setSpacing(6);
         gridLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -195,7 +201,7 @@ public:
         label_7 = new QLabel(groupBox_3);
         label_7->setObjectName(QString::fromUtf8("label_7"));
 
-        gridLayout_4->addWidget(label_7, 4, 0, 1, 1);
+        gridLayout_4->addWidget(label_7, 7, 0, 1, 1);
 
         sites = new QSpinBox(groupBox_3);
         sites->setObjectName(QString::fromUtf8("sites"));
@@ -204,23 +210,61 @@ public:
 
         gridLayout_4->addWidget(sites, 2, 1, 1, 1);
 
-        doubleSpinBox = new QDoubleSpinBox(groupBox_3);
-        doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox"));
-        doubleSpinBox->setMaximumSize(QSize(59, 16777215));
+        randCutBox = new QDoubleSpinBox(groupBox_3);
+        randCutBox->setObjectName(QString::fromUtf8("randCutBox"));
+        randCutBox->setMaximumSize(QSize(59, 16777215));
+        randCutBox->setValue(10);
 
-        gridLayout_4->addWidget(doubleSpinBox, 4, 1, 1, 1);
+        gridLayout_4->addWidget(randCutBox, 7, 1, 1, 1);
 
         stepBox = new QCheckBox(groupBox_3);
         stepBox->setObjectName(QString::fromUtf8("stepBox"));
         stepBox->setChecked(true);
 
-        gridLayout_4->addWidget(stepBox, 5, 0, 1, 1);
+        gridLayout_4->addWidget(stepBox, 9, 0, 1, 1);
 
         stepButton = new QPushButton(groupBox_3);
         stepButton->setObjectName(QString::fromUtf8("stepButton"));
         stepButton->setEnabled(false);
 
-        gridLayout_4->addWidget(stepButton, 5, 1, 1, 1);
+        gridLayout_4->addWidget(stepButton, 9, 1, 1, 1);
+
+        label_12 = new QLabel(groupBox_3);
+        label_12->setObjectName(QString::fromUtf8("label_12"));
+
+        gridLayout_4->addWidget(label_12, 3, 0, 1, 1);
+
+        label_13 = new QLabel(groupBox_3);
+        label_13->setObjectName(QString::fromUtf8("label_13"));
+
+        gridLayout_4->addWidget(label_13, 4, 0, 1, 1);
+
+        deltaLamba = new QDoubleSpinBox(groupBox_3);
+        deltaLamba->setObjectName(QString::fromUtf8("deltaLamba"));
+        deltaLamba->setValue(5);
+
+        gridLayout_4->addWidget(deltaLamba, 3, 1, 1, 1);
+
+        label_14 = new QLabel(groupBox_3);
+        label_14->setObjectName(QString::fromUtf8("label_14"));
+
+        gridLayout_4->addWidget(label_14, 8, 0, 1, 1);
+
+        label_15 = new QLabel(groupBox_3);
+        label_15->setObjectName(QString::fromUtf8("label_15"));
+
+        gridLayout_4->addWidget(label_15, 5, 0, 1, 1);
+
+        label_16 = new QLabel(groupBox_3);
+        label_16->setObjectName(QString::fromUtf8("label_16"));
+
+        gridLayout_4->addWidget(label_16, 6, 0, 1, 1);
+
+        deltaPhi = new QDoubleSpinBox(groupBox_3);
+        deltaPhi->setObjectName(QString::fromUtf8("deltaPhi"));
+        deltaPhi->setValue(5);
+
+        gridLayout_4->addWidget(deltaPhi, 5, 1, 1, 1);
 
 
         gridLayout_3->addWidget(groupBox_3, 3, 0, 1, 1);
@@ -321,13 +365,18 @@ public:
         label->setText(QApplication::translate("MainWindow", "Initial population", 0, QApplication::UnicodeUTF8));
         label_5->setText(QApplication::translate("MainWindow", "Field width", 0, QApplication::UnicodeUTF8));
         label_6->setText(QApplication::translate("MainWindow", "Field height", 0, QApplication::UnicodeUTF8));
-        groupBox_3->setTitle(QApplication::translate("MainWindow", "Runtime", 0, QApplication::UnicodeUTF8));
+        groupBox_3->setTitle(QApplication::translate("MainWindow", "Run params", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("MainWindow", "Generations", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("MainWindow", "Elite Sites", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("MainWindow", "Priority sites", 0, QApplication::UnicodeUTF8));
-        label_7->setText(QApplication::translate("MainWindow", "Random search (%)", 0, QApplication::UnicodeUTF8));
+        label_7->setText(QApplication::translate("MainWindow", "Random search", 0, QApplication::UnicodeUTF8));
         stepBox->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
         stepButton->setText(QApplication::translate("MainWindow", "Step", 0, QApplication::UnicodeUTF8));
+        label_12->setText(QApplication::translate("MainWindow", "\316\224width", 0, QApplication::UnicodeUTF8));
+        label_13->setText(QApplication::translate("MainWindow", "(% field long)", 0, QApplication::UnicodeUTF8));
+        label_14->setText(QApplication::translate("MainWindow", "(% of colony)", 0, QApplication::UnicodeUTF8));
+        label_15->setText(QApplication::translate("MainWindow", "\316\224height", 0, QApplication::UnicodeUTF8));
+        label_16->setText(QApplication::translate("MainWindow", "(% field lat)", 0, QApplication::UnicodeUTF8));
         pushButton->setText(QApplication::translate("MainWindow", "Begin", 0, QApplication::UnicodeUTF8));
         groupBox_4->setTitle(QApplication::translate("MainWindow", "Shekel params", 0, QApplication::UnicodeUTF8));
         label_8->setText(QApplication::translate("MainWindow", "Foxhole number", 0, QApplication::UnicodeUTF8));

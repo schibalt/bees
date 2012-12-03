@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>604</height>
+    <height>662</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,8 +22,8 @@
      <widget class="QGroupBox" name="groupBox">
       <property name="minimumSize">
        <size>
-        <width>134</width>
-        <height>0</height>
+        <width>0</width>
+        <height>543</height>
        </size>
       </property>
       <property name="title">
@@ -32,12 +32,6 @@
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_2">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>183</height>
-          </size>
-         </property>
          <property name="title">
           <string>Case params</string>
          </property>
@@ -150,7 +144,7 @@
        <item row="3" column="0">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
-          <string>Runtime</string>
+          <string>Run params</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
@@ -203,10 +197,10 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="label_7">
             <property name="text">
-             <string>Random search (%)</string>
+             <string>Random search</string>
             </property>
            </widget>
           </item>
@@ -220,17 +214,20 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox">
+          <item row="7" column="1">
+           <widget class="QDoubleSpinBox" name="randCutBox">
             <property name="maximumSize">
              <size>
               <width>59</width>
               <height>16777215</height>
              </size>
             </property>
+            <property name="value">
+             <double>10.000000000000000</double>
+            </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="9" column="0">
            <widget class="QCheckBox" name="stepBox">
             <property name="text">
              <string>Step</string>
@@ -240,13 +237,62 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="9" column="1">
            <widget class="QPushButton" name="stepButton">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="text">
              <string>Step</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Δwidth</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>(% field long)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="deltaLamba">
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>(% of colony)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Δheight</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>(% field lat)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="deltaPhi">
+            <property name="value">
+             <double>5.000000000000000</double>
             </property>
            </widget>
           </item>

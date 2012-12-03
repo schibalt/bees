@@ -18,6 +18,14 @@ void WorkerBee::disconnectEverything(QThread& thread)
     //evaluate fitnesses
     disconnect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()));
     disconnect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
+
+    //select sites
+    disconnect(&thread, SIGNAL(started()), this, SLOT(selectSites()));
+    disconnect(this, SIGNAL(quitSiteSelectThread()), &thread, SLOT(quit()));
+
+    //recruit bees
+    disconnect(&thread, SIGNAL(started()), this, SLOT(recruit()));
+    disconnect(this, SIGNAL(quitRecruitmentThread()), &thread, SLOT(quit()));
 }
 
 void WorkerBee::setGenesisMembers(
@@ -87,101 +95,6 @@ void WorkerBee::genesis()
 const vector<Bee >* WorkerBee::getBees()
 {
     return const_cast<const vector<Bee >* >(&_bees);
-}
-
-void WorkerBee::computeField()
-{
-    ofstream indexFilestream;
-    char indexFilename[] = "indices.txt";
-    indexFilestream.open(indexFilename, ios::out);
-
-    const int fieldWidth = _fieldDims.width();
-    const int fieldHeight = _fieldDims.height();
-
-    //double** field = new double*[fieldHeight];
-    _field = new double*[fieldHeight];
-
-    for (int i = 0; i < fieldHeight; ++i)
-    {
-        _field[i] = new double[fieldWidth];
-
-        for (int j = 0; j < fieldWidth; j++)
-            _field[i][j] = 0;
-    }
-
-    double upperLeftVal;
-    double upperRightVal;
-    double lowerLeftVal;
-    double lowerRightVal;
-
-    const int shekelArraySize = (2 * _foxholeParam) + 1;
-
-    double subMatWidth = (double) _fieldDims.width() / (shekelArraySize - 1);
-    double subMatHeight = (double) _fieldDims.height() / (shekelArraySize - 1);
-
-    float xLeftRatio;
-    float yUpRatio;
-    float xRightRatio;
-    float yDownRatio;
-
-    double weightedUpperLeftValue;
-    double weightedLowerLeftValue;
-    double weightedUpperRightValue;
-    double weightedLowerRightValue;
-
-    int iIdx;
-    int jIdx;
-
-    for (int k = 1; k < shekelArraySize; k++)
-        for (int l = 1; l < shekelArraySize; l++)
-        {
-            upperLeftVal = _foxholes[k - 1][l - 1];
-            upperRightVal = _foxholes[k - 1][l];
-            lowerLeftVal = _foxholes[k][l - 1];
-            lowerRightVal = _foxholes[k][l];
-
-            for (int i = 0; i < subMatHeight; i++)
-            {
-                yDownRatio = (float) i / subMatHeight;
-                yUpRatio = 1 - yDownRatio;
-
-                for (int j = 0; j < subMatWidth; j++)
-                {
-                    xRightRatio = (float) j / subMatWidth;
-                    xLeftRatio = 1 - xRightRatio;
-
-                    weightedUpperLeftValue = upperLeftVal * yUpRatio * xLeftRatio;
-                    weightedLowerLeftValue = lowerLeftVal * xLeftRatio * yDownRatio;
-                    weightedUpperRightValue = upperRightVal * yUpRatio * xRightRatio;
-                    weightedLowerRightValue = lowerRightVal * yDownRatio * xRightRatio;
-
-                    iIdx = ((k - 1) * subMatHeight) + i;
-                    jIdx = ((l - 1) * subMatWidth) + j;
-
-                    _field[iIdx][jIdx]  = weightedUpperLeftValue + weightedLowerLeftValue
-                                          + weightedUpperRightValue + weightedLowerRightValue;
-                }
-            }
-        }
-
-    //_field =  const_cast<const double**>(field);
-
-    ofstream fieldFilestream;
-    char fieldFilename[] = "field.txt";
-    fieldFilestream.open(fieldFilename, ios::out);
-
-    for (int i = 0; i < fieldHeight; i++)
-    {
-        for (int j = 0; j < fieldWidth; j++)
-        {
-            fieldFilestream << _field[i][j] << " ";
-        }
-        fieldFilestream << endl;
-    }
-    fieldFilestream.close();
-
-    emit quitFieldGenThread();
-    emit fieldGenerated();
 }
 
 void WorkerBee::setFieldGenMembers(
@@ -291,49 +204,145 @@ double WorkerBee::foxHelper(int* x)
     float uniform;
     const int matdim = (2 * _foxholeParam) + 1;
 
-    for (int i = 0; i < _maxima; i++)
+    for (int j = 0; j < _maxima; j++)
     {
         tmp2 = 0.0;
 
-        for (int j = 0; j < _DIMENSIONS; j++)
+        for (int i = 0; i < _DIMENSIONS; i++)
         {
             uniform = r4_uniform_01(seed);
             //qDebug() << "uniform is " << uniform;
 
             if (_deterministic)
-                aval = constA[i][j];
+                aval = constA[j][i];
             else
                 aval = (uniform * matdim) - _foxholeParam;
 
             //qDebug() << "aval is " << aval;
 
-            tmp2 += pow(x[j] - aval, _power);
+            tmp2 += pow(x[i] - aval, _power);
         }
-        uniform = r4_uniform_01(seed);
+        uniform = _maxima * r4_uniform_01(seed);
         // qDebug() << "uniform is " << uniform;
 
         if (_deterministic)
-            tmp += (1 / (i + tmp2));
+            tmp += (1 / (j + tmp2));
         else
             tmp += (1 / (tmp2 + uniform));
     }
 
     if (_deterministic)
+    {
         return -(1 / (.002 + tmp));
+        return (1 / (.002 + tmp));
+        return 119.998 - tmp;
+    }
     else
         return tmp * 10;
 }
 
-void WorkerBee::setFitnessEvalMembers(QThread& thread, int sites, int eliteSites)
+void WorkerBee::computeField()
+{
+    ofstream indexFilestream;
+    char indexFilename[] = "indices.txt";
+    indexFilestream.open(indexFilename, ios::out);
+
+    const int fieldWidth = _fieldDims.width();
+    const int fieldHeight = _fieldDims.height();
+
+    //double** field = new double*[fieldHeight];
+    _field = new double*[fieldHeight];
+
+    for (int i = 0; i < fieldHeight; ++i)
+    {
+        _field[i] = new double[fieldWidth];
+
+        for (int j = 0; j < fieldWidth; j++)
+            _field[i][j] = 0;
+    }
+
+    double upperLeftVal;
+    double upperRightVal;
+    double lowerLeftVal;
+    double lowerRightVal;
+
+    const int shekelArraySize = (2 * _foxholeParam) + 1;
+
+    double subMatWidth = (double) _fieldDims.width() / (shekelArraySize - 1);
+    double subMatHeight = (double) _fieldDims.height() / (shekelArraySize - 1);
+
+    float xLeftRatio;
+    float yUpRatio;
+    float xRightRatio;
+    float yDownRatio;
+
+    double weightedUpperLeftValue;
+    double weightedLowerLeftValue;
+    double weightedUpperRightValue;
+    double weightedLowerRightValue;
+
+    int iIdx;
+    int jIdx;
+
+    for (int k = 1; k < shekelArraySize; k++)
+        for (int l = 1; l < shekelArraySize; l++)
+        {
+            upperLeftVal = _foxholes[k - 1][l - 1];
+            upperRightVal = _foxholes[k - 1][l];
+            lowerLeftVal = _foxholes[k][l - 1];
+            lowerRightVal = _foxholes[k][l];
+
+            for (int i = 0; i < subMatHeight; i++)
+            {
+                yDownRatio = (float) i / subMatHeight;
+                yUpRatio = 1 - yDownRatio;
+
+                for (int j = 0; j < subMatWidth; j++)
+                {
+                    xRightRatio = (float) j / subMatWidth;
+                    xLeftRatio = 1 - xRightRatio;
+
+                    weightedUpperLeftValue = upperLeftVal * yUpRatio * xLeftRatio;
+                    weightedLowerLeftValue = lowerLeftVal * xLeftRatio * yDownRatio;
+                    weightedUpperRightValue = upperRightVal * yUpRatio * xRightRatio;
+                    weightedLowerRightValue = lowerRightVal * yDownRatio * xRightRatio;
+
+                    iIdx = ((k - 1) * subMatHeight) + i;
+                    jIdx = ((l - 1) * subMatWidth) + j;
+
+                    _field[iIdx][jIdx]  = weightedUpperLeftValue + weightedLowerLeftValue
+                                          + weightedUpperRightValue + weightedLowerRightValue;
+                }
+            }
+        }
+
+    //_field =  const_cast<const double**>(field);
+
+    ofstream fieldFilestream;
+    char fieldFilename[] = "field.txt";
+    fieldFilestream.open(fieldFilename, ios::out);
+
+    for (int i = 0; i < fieldHeight; i++)
+    {
+        for (int j = 0; j < fieldWidth; j++)
+        {
+            fieldFilestream << _field[i][j] << " ";
+        }
+        fieldFilestream << endl;
+    }
+    fieldFilestream.close();
+
+    emit quitFieldGenThread();
+    emit fieldGenerated();
+}
+
+void WorkerBee::setFitnessEvalMembers(QThread& thread)
 {
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
     connect(&thread, SIGNAL(started()), this, SLOT(evaluateFitnesses()));
     connect(this, SIGNAL(quitFitEvalThread()), &thread, SLOT(quit()));
-
-    _sites = sites;
-    _eliteSites = eliteSites;
 }
 
 void WorkerBee::evaluateFitnesses()
@@ -365,34 +374,227 @@ void WorkerBee::evaluateFitnesses()
     }
     sort(_bees.begin(), _bees.end());
 
+    /*
     inc = 0;
 
     foreach(Bee bee, _bees)
     {
-        // qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
+         qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
 
         ++inc;
     }
-    /*
     */
 
-    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - _sites - 1; --i)
-    {
-        (*i).setRole(Bee::PRIORITY);
-        qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
-    }
-
-    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - _eliteSites - 1; --i)
-    {
-        (*i).setRole(Bee::ELITE);
-        qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
-    }
     emit quitFitEvalThread();
     emit fitnessesEvaluated();
 }
 
-
-void WorkerBee::evaluateFitnesses(vector<Bee > neighborhood)
+void WorkerBee::setSiteSelectionMembers(QThread& thread, int sites, int eliteSites)
 {
+    disconnectEverything(thread);
 
+    connect(&thread, SIGNAL(started()), this, SLOT(selectSites()));
+    connect(this, SIGNAL(quitSiteSelectThread()), &thread, SLOT(quit()));
+
+    _sites = sites;
+    _eliteSites = eliteSites;
+}
+
+void WorkerBee::selectSites()
+{
+    _priorityBees.clear();
+    _eliteBees.clear();
+
+    int eliteOffset =  1 + _eliteSites;
+    int priorityOffset = 1 + _sites;
+
+    for (vector<Bee >::iterator i = _bees.end() - eliteOffset; i != _bees.end() - priorityOffset; --i)
+    {
+        (*i).setRole(Bee::PRIORITY);
+        _priorityBees.push_back((*i));
+        qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
+    }
+
+    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - eliteOffset; --i)
+    {
+        (*i).setRole(Bee::ELITE);
+        _eliteBees.push_back((*i));
+        qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+    }
+    emit quitSiteSelectThread();
+    emit sitesSelected();
+}
+
+void WorkerBee::setRecruitmentMembers
+(
+    QThread& thread,
+    double randomCut,
+    double deltaLambda,
+    double deltaPhi
+)
+{
+    disconnectEverything(thread);
+
+    _randomCut = randomCut;
+    _deltaLambda = deltaLambda;
+    _deltaPhi = deltaPhi;
+    _eliteWeight = 2;
+    _priorityWeight = 1;
+
+    connect(&thread, SIGNAL(started()), this, SLOT(recruit()));
+    connect(this, SIGNAL(quitRecruitmentThread()), &thread, SLOT(quit()));
+}
+
+void WorkerBee::recruit()
+{
+    //convert to raiot 0:1
+    double scoutRatio = _randomCut / 100;
+
+    //set the actual number of scouts
+    int scouts = _bees.size() * scoutRatio;
+
+    int elites = _eliteBees.size();
+    int prioritized = _priorityBees.size();
+
+    //recruits + priority bees + elite bees
+    int remainder = _bees.size() - scouts - elites - prioritized;
+
+    //weight the numbers of bees at pri. + elite sites
+    double eliteWeight = elites * _eliteWeight;
+    double priorityWeight = prioritized * _priorityWeight;
+
+    //set ratios 0:1
+    double eliteRatio = (eliteWeight / (eliteWeight + priorityWeight));
+    double priorityRatio = 1 - eliteRatio;
+
+    //set bees per site type
+    int eliteRecruits = remainder * eliteRatio;
+    int priorityRecruits = remainder * priorityRatio;
+
+    //set bees per site
+    int perPrioritySite = priorityRecruits / prioritized;
+    int perEliteSite = eliteRecruits / elites;
+
+    //account for remainder
+    int extraElites = eliteRecruits - (elites * perEliteSite);
+    int extraPrioritized = priorityRecruits - (prioritized * perPrioritySite);
+
+    //add to scout pool
+    scouts += extraElites;
+    scouts += extraPrioritized;
+
+    //seems unecessary
+    //perEliteSite -= extraElites;
+    //perPrioritySite -= extraPrioritized;
+
+    int bee = 0;
+
+    _eliteNeighborhoods.clear();
+    _priorityNeighborhoods.clear();
+
+    for (int eliteHood = 0; eliteHood < elites; eliteHood++)
+    {
+        vector<Bee* > newEliteNeighborhood;
+        newEliteNeighborhood.push_back(&_eliteBees[eliteHood]);
+        ++bee;
+
+        for (int eliteNeighbor = 0; eliteNeighbor < perEliteSite; eliteNeighbor++)
+        {
+            newEliteNeighborhood.push_back(&_bees[bee]);
+            ++bee;
+        }
+        _eliteNeighborhoods.push_back(newEliteNeighborhood);
+        moveToSite(_eliteNeighborhoods.back());
+    }
+
+    for (int priorityHood = 0; priorityHood < prioritized; priorityHood++)
+    {
+        vector<Bee* > newPriorityNeighborhood;
+        newPriorityNeighborhood.push_back(&_priorityBees[priorityHood]);
+        ++bee;
+
+        for (int prioritizedNeighbor = 0; prioritizedNeighbor < perPrioritySite; prioritizedNeighbor++)
+        {
+            newPriorityNeighborhood.push_back(&_bees[bee]);
+            ++bee;
+        }
+        _priorityNeighborhoods.push_back(newPriorityNeighborhood);
+        moveToSite(_priorityNeighborhoods.back());
+    }
+
+
+    emit quitRecruitmentThread();
+    emit beesRecruited();
+}
+
+void WorkerBee::moveToSite(vector<Bee* > neighborhood)
+{
+    int fieldWidth = _fieldDims.width();
+    int fieldHeight = _fieldDims.height();
+
+    int deltaLambda = fieldWidth * _deltaLambda;
+    deltaLambda /= 100;
+    int deltaPhi = fieldHeight * _deltaPhi;
+    deltaPhi /= 100;
+
+    Bee* mainBee = neighborhood.front();
+
+    int boundaryWest = mainBee->getPoint().x() - deltaLambda;
+
+    if (boundaryWest < 0)
+        boundaryWest = 0;
+
+    int boundaryEast = mainBee->getPoint().x() + deltaLambda;
+
+    if (boundaryEast >= fieldWidth)
+        boundaryEast = fieldWidth - 1;
+
+    int boundaryNorth = mainBee->getPoint().y() - deltaPhi;
+
+    if (boundaryNorth < 0)
+        boundaryNorth = 0;
+
+    int boundarySouth = mainBee->getPoint().y() + deltaPhi;
+
+    if (boundarySouth >= fieldHeight)
+        boundarySouth = fieldHeight - 1;
+
+    deltaLambda = boundaryEast - boundaryWest;
+    deltaPhi = boundarySouth - boundaryNorth;
+
+    qDebug() << "evaluating neighborhood fitnesses";
+
+    int hiveJ = _hive.getPoint().x();
+    int hiveI = _hive.getPoint().y();
+
+    double fieldPtQuality;
+    double distance;
+    double fitness;
+    int inc = 0;
+
+    int newX;
+    int newY;
+
+    int seed = rand();
+
+    for (vector<Bee* >::iterator i = neighborhood.begin(); i != neighborhood.end(); ++i)
+    {
+        Bee* bee = (*i);
+
+        newX = boundaryWest + (deltaLambda * r4_uniform_01(seed));
+
+        newY = boundaryNorth + (deltaPhi * r4_uniform_01(seed));
+
+        bee->setPoint(QPoint(newX, newY));
+
+        distance = sqrt(pow(newX - hiveJ, 2) + pow(newY - hiveI, 2));
+        fieldPtQuality = _field[newY][newX];
+
+        fitness = fieldPtQuality / distance;
+        //qDebug() << "bee " << inc << " fitness is " << fitness;
+
+        bee->setFitness(fitness);
+        ++inc;
+    }
+    sort(neighborhood.begin(), neighborhood.end());
 }

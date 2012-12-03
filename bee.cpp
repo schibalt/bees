@@ -6,7 +6,7 @@
 Bee::Bee(const QSize fieldDims)
 {
     _role = SCOUT;
-    setPointFieldRandom( QPoint(0, 0), fieldDims);
+    setFieldPtRandom( QPoint(0, 0), fieldDims);
 }
 
 //this constructor is used for insting a bee
@@ -15,7 +15,7 @@ Bee::Bee(const QSize fieldDims)
 Bee::Bee(QPoint point, const QSize fieldDims)
 {
     _role = SCOUT;
-    setPointFieldRandom(point, fieldDims);
+    setFieldPtRandom(point, fieldDims);
 }
 
 Bee::Bee()
@@ -33,7 +33,7 @@ const QPoint Bee::getPoint()
     return  _point;
 }
 
-void Bee::setPointFieldRandom(const QPoint point, const QSize fieldDims)
+void Bee::setFieldPtRandom(const QPoint point, const QSize fieldDims)
 {
     unsigned int xPos = rand() % fieldDims.width();
     unsigned int yPos = rand() % fieldDims.height();

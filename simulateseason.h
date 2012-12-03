@@ -37,9 +37,13 @@ class WorkerBee : public QObject
             int,
             bool
         );
+
         const double** getFoxholes();
-        //void setConnections(QThread &thread);
-        void setFitnessEvalMembers(QThread&, int, int);
+        void setFitnessEvalMembers(QThread&);
+
+        //site selection
+        void setSiteSelectionMembers(QThread& , int , int);
+       void setRecruitmentMembers(QThread& , double ,double ,double );
 
     private:
         void disconnectEverything(QThread&);
@@ -69,26 +73,54 @@ class WorkerBee : public QObject
         int _sites;
         int _eliteSites;
 
+        //runtime
         int _seasonLength;
 
+        //step 1
+        vector<Bee > _priorityBees;
+        vector<Bee > _eliteBees;
+
+        //step 2
+        void evaluateFitnesses(vector<Bee >);
+        void moveToSite(vector<Bee* > );
+
+        double _randomCut;
+        double _deltaLambda ;
+        double _deltaPhi;
+        double _eliteWeight;
+        double _priorityWeight;
+        vector<vector< Bee* > > _eliteNeighborhoods;
+        vector<vector< Bee* > > _priorityNeighborhoods;
+
     signals:
+        void quitBeeGenThread();
         void beesGenerated();
+
         void foxholesGenerated();
+        void quitFieldGenThread();
         void fieldGenerated();
+
+        void quitFitEvalThread();
         void fitnessesEvaluated();
 
-        void quitBeeGenThread();
-        void quitFieldGenThread();
-        void quitFitEvalThread();
+        void quitSiteSelectThread();
+        void sitesSelected();
+
+        void quitRecruitmentThread();
+        void beesRecruited();
 
     public slots:
-        void foxholes();
-        void computeField();
         void genesis();
+
+        void foxholes();
+
         void evaluateFitnesses();
-        void evaluateFitnesses(vector<Bee >);
+
+        void selectSites();
+        void recruit();
 
     private slots:
+        void computeField();
 
 };
 

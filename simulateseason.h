@@ -41,7 +41,7 @@ class WorkerBee : public QObject
         );
 
         const double** getFoxholes();
-        void setFitnessEvalMembers(QThread&);
+        void setFitnessEvalMembers(QThread&,double);
 
         //site selection
         void setSiteSelectionMembers(QThread& , int , int);
@@ -85,6 +85,7 @@ class WorkerBee : public QObject
         int _sites;
         int _eliteSites;
 
+           double _distancePenalty;
         //runtime
         int _seasonLength;
 

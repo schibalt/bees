@@ -359,8 +359,9 @@ void WorkerBee::computeField()
     emit fieldGenerated();
 }
 
-void WorkerBee::setFitnessEvalMembers(QThread& thread)
+void WorkerBee::setFitnessEvalMembers(QThread& thread, double distancePenalty)
 {
+    _distancePenalty = distancePenalty;
     disconnectEverything(thread);
 
     //when the thread it started generate the bees
@@ -370,7 +371,7 @@ void WorkerBee::setFitnessEvalMembers(QThread& thread)
 
 void WorkerBee::evaluateFitnesses()
 {
-    qDebug() << "evaluating fitnesses";
+   // qDebug() << "evaluating fitnesses";
     int beeJ;
     int beeI;
 
@@ -381,32 +382,40 @@ void WorkerBee::evaluateFitnesses()
     double distance;
     double fitness;
     int inc = 0;
+    Bee* bee;
 
     for (vector<Bee >::iterator i = _bees.begin(); i != _bees.end(); ++i)
     {
-        beeJ = (*i).getPoint().x();
-        beeI = (*i).getPoint().y();
+        bee = &(*i);
+        beeJ = bee->getPoint().x();
+        beeI = bee->getPoint().y();
         distance = sqrt(pow(beeJ - hiveJ, 2) + pow(beeI - hiveI, 2));
         fieldPtQuality = _field[beeI][beeJ];
 
-        fitness = fieldPtQuality / distance;
+        double weightedDistance = _distancePenalty * distance;
+
+        if (weightedDistance < 1)
+            weightedDistance = 1;
+
+        fitness = fieldPtQuality / weightedDistance;
         //qDebug() << "bee " << inc << " fitness is " << fitness;
 
-        (*i).setFitness(fitness);
+        bee->setFitness(fitness);
         ++inc;
     }
     sort(_bees.begin(), _bees.end());
+    reverse(_bees.begin(), _bees.end());
 
     /*
+    */
     inc = 0;
 
     foreach(Bee bee, _bees)
     {
-         qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
+        qDebug() << "bee " << inc << " fitness is " << bee.getFitness();
 
         ++inc;
     }
-    */
 
     emit quitFitEvalThread();
     emit fitnessesEvaluated();
@@ -428,23 +437,22 @@ void WorkerBee::selectSites()
     _priorityBees.clear();
     _eliteBees.clear();
 
-    int eliteOffset =  1 + _eliteSites;
-    int priorityOffset = 1 + _sites;
     //Bee* bee;
+    
+    for (vector<Bee >::iterator i = _bees.begin(); i != _bees.begin() + _eliteSites; ++i)
+    {
+        (*i).setRole(Bee::ELITE);
+        _eliteBees.push_back(&(*i));
+      //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+    }
 
-    for (vector<Bee >::iterator i = _bees.end() - eliteOffset; i != _bees.end() - priorityOffset; --i)
+    for (vector<Bee >::iterator i = _bees.begin() + _eliteSites;
+         i != _bees.begin() + _eliteSites + _sites; ++i)
     {
 
         (*i).setRole(Bee::PRIORITY);
         _priorityBees.push_back(&(*i));
-     //  qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
-    }
-
-    for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - eliteOffset; --i)
-    {
-        (*i).setRole(Bee::ELITE);
-        _eliteBees.push_back(&(*i));
-      //  qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+      //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
     }
     emit quitSiteSelectThread();
     emit sitesSelected();
@@ -512,7 +520,7 @@ void WorkerBee::recruit()
     //perEliteSite -= extraElites;
     //perPrioritySite -= extraPrioritized;
 
-    int bee = 0;
+    int bee = _bees.size();
 
     _eliteNeighborhoods.clear();
     _priorityNeighborhoods.clear();
@@ -529,7 +537,7 @@ void WorkerBee::recruit()
             neighborBee = &_bees[bee];
             neighborBee->setRole(Bee::RECRUIT);
             newEliteNeighborhood.push_back(neighborBee);
-            ++bee;
+            --bee;
         }
         _eliteNeighborhoods.push_back(newEliteNeighborhood);
         moveToSite(_eliteNeighborhoods.back());
@@ -546,7 +554,7 @@ void WorkerBee::recruit()
             neighborBee = &_bees[bee];
             neighborBee->setRole(Bee::RECRUIT);
             newPriorityNeighborhood.push_back(neighborBee);
-            ++bee;
+            --bee;
         }
         _priorityNeighborhoods.push_back(newPriorityNeighborhood);
         moveToSite(_priorityNeighborhoods.back());
@@ -737,8 +745,16 @@ void WorkerBee::newGenMembers(QThread& thread)
 void WorkerBee::regenerate()
 {
     _bees.clear();
+
+    time_t rawtime;
+    time(&rawtime);
+
+    // seed the rand num gen with the current time
+    srand(rawtime);
+
     Bee bee;
 
+    //for each elite neighborhood
     for (vector<vector<Bee* > >::iterator i = _eliteNeighborhoods.begin();
          i != _eliteNeighborhoods.end(); ++i)
     {
@@ -759,12 +775,13 @@ void WorkerBee::regenerate()
             _bees.push_back(bee);
         }
     }
-
+    evaluateFitnesses();
     for (int i = _bees.size(); i < _population; i++)
     {
         Bee newBee(_fieldDims);
         _bees.push_back(newBee);
     }
+    /*
     qDebug() << "evaluating new gen fitnesses";
     int beeJ;
     int beeI;
@@ -791,6 +808,7 @@ void WorkerBee::regenerate()
         ++inc;
     }
     sort(_bees.begin(), _bees.end());
+    */
 
     emit quitRegenThread();
     emit regenerated();

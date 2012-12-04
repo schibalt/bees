@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Mon Dec 3 15:59:48 2012
+** Created: Tue Dec 4 01:05:08 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -67,6 +67,9 @@ public:
     QLabel *label_15;
     QLabel *label_16;
     QDoubleSpinBox *deltaPhi;
+    QLabel *label_17;
+    QDoubleSpinBox *distancePenalty;
+    QLabel *label_18;
     QPushButton *pushButton;
     QGroupBox *groupBox_4;
     QGridLayout *gridLayout_5;
@@ -157,7 +160,7 @@ public:
         initialPop->setMaximumSize(QSize(50, 16777215));
         initialPop->setMinimum(1);
         initialPop->setMaximum(50000);
-        initialPop->setValue(60);
+        initialPop->setValue(200);
 
         gridLayout_2->addWidget(initialPop, 0, 1, 1, 1);
 
@@ -192,7 +195,7 @@ public:
         eliteSites = new QSpinBox(groupBox_3);
         eliteSites->setObjectName(QString::fromUtf8("eliteSites"));
         eliteSites->setMinimum(1);
-        eliteSites->setValue(1);
+        eliteSites->setValue(3);
 
         gridLayout_4->addWidget(eliteSites, 1, 1, 1, 1);
 
@@ -209,7 +212,7 @@ public:
         sites = new QSpinBox(groupBox_3);
         sites->setObjectName(QString::fromUtf8("sites"));
         sites->setMinimum(1);
-        sites->setValue(3);
+        sites->setValue(10);
 
         gridLayout_4->addWidget(sites, 2, 1, 1, 1);
 
@@ -224,13 +227,13 @@ public:
         stepBox->setObjectName(QString::fromUtf8("stepBox"));
         stepBox->setChecked(true);
 
-        gridLayout_4->addWidget(stepBox, 9, 0, 1, 1);
+        gridLayout_4->addWidget(stepBox, 11, 0, 1, 1);
 
         stepButton = new QPushButton(groupBox_3);
         stepButton->setObjectName(QString::fromUtf8("stepButton"));
         stepButton->setEnabled(false);
 
-        gridLayout_4->addWidget(stepButton, 9, 1, 1, 1);
+        gridLayout_4->addWidget(stepButton, 11, 1, 1, 1);
 
         label_12 = new QLabel(groupBox_3);
         label_12->setObjectName(QString::fromUtf8("label_12"));
@@ -268,6 +271,23 @@ public:
         deltaPhi->setValue(7);
 
         gridLayout_4->addWidget(deltaPhi, 5, 1, 1, 1);
+
+        label_17 = new QLabel(groupBox_3);
+        label_17->setObjectName(QString::fromUtf8("label_17"));
+
+        gridLayout_4->addWidget(label_17, 9, 0, 1, 1);
+
+        distancePenalty = new QDoubleSpinBox(groupBox_3);
+        distancePenalty->setObjectName(QString::fromUtf8("distancePenalty"));
+        distancePenalty->setMaximum(1);
+        distancePenalty->setSingleStep(0.01);
+
+        gridLayout_4->addWidget(distancePenalty, 9, 1, 1, 1);
+
+        label_18 = new QLabel(groupBox_3);
+        label_18->setObjectName(QString::fromUtf8("label_18"));
+
+        gridLayout_4->addWidget(label_18, 10, 0, 1, 1);
 
 
         gridLayout_3->addWidget(groupBox_3, 3, 0, 1, 1);
@@ -391,6 +411,8 @@ public:
         label_14->setText(QApplication::translate("MainWindow", "(% of colony)", 0, QApplication::UnicodeUTF8));
         label_15->setText(QApplication::translate("MainWindow", "\316\224height", 0, QApplication::UnicodeUTF8));
         label_16->setText(QApplication::translate("MainWindow", "(% field lat)", 0, QApplication::UnicodeUTF8));
+        label_17->setText(QApplication::translate("MainWindow", "Distance", 0, QApplication::UnicodeUTF8));
+        label_18->setText(QApplication::translate("MainWindow", "penalty", 0, QApplication::UnicodeUTF8));
         pushButton->setText(QApplication::translate("MainWindow", "Begin", 0, QApplication::UnicodeUTF8));
         groupBox_4->setTitle(QApplication::translate("MainWindow", "Shekel params", 0, QApplication::UnicodeUTF8));
         label_8->setText(QApplication::translate("MainWindow", "Foxhole number", 0, QApplication::UnicodeUTF8));

@@ -176,8 +176,9 @@ void MainWindow::fieldGenerated()
     
     setGraduation(F);
     contourMap = generateContourMap(F);
+    double distancePenalty = _ui->distancePenalty->value();
 
-    _workerBee.setFitnessEvalMembers(_thread);
+    _workerBee.setFitnessEvalMembers(_thread,distancePenalty);
     _thread.start();
 }
 
@@ -468,19 +469,19 @@ void MainWindow::nextStep()
     // QFuture<void> drawCall = QtConcurrent::run(this, &MainWindow::drawStep);
     // drawCall.waitForFinished();
 
+
+    ++_step;
+
+    if (_step == _STEPS)
+        ++_day;
+
+    _step %= _STEPS;
+    if (_thread.isRunning())
+        _thread.quit();
     int seasonLength = _ui->genCap->value();
 
     if (_day < seasonLength)
     {
-
-        ++_step;
-
-        if (_step == _STEPS)
-            ++_day;
-
-        _step %= _STEPS;
-        if (_thread.isRunning())
-            _thread.quit();
         qDebug() << "step " << _step << " of ";
         qDebug() << "day " << _day;
         QString message;
@@ -503,6 +504,7 @@ void MainWindow::nextStep()
                      if (!_ui->stepBox->isChecked())
                        QObject::connect(&_workerBee, SIGNAL(sitesSelected()), this, SLOT(nextStep()),Qt::UniqueConnection);
 
+                     _ui->stepButton->setEnabled(false);
                     _thread.start();
                     message = "Selecting sites";
 
@@ -525,6 +527,7 @@ void MainWindow::nextStep()
 
                     message = "Recruiting bees";
 
+                    _ui->stepButton->setEnabled(false);
                     _thread.start();
 
                     _ui->statusBar->showMessage(message);
@@ -542,6 +545,7 @@ void MainWindow::nextStep()
                            QObject::connect(&_workerBee, SIGNAL(neighborFitsEval()), this, SLOT(nextStep()),Qt::UniqueConnection);
                     }
 
+                    _ui->stepButton->setEnabled(false);
                     _thread.start();
                 }
             break;
@@ -555,6 +559,7 @@ void MainWindow::nextStep()
                             QObject::connect(&_workerBee, SIGNAL(regenerated()), this, SLOT(nextStep()),Qt::UniqueConnection);
                     }
 
+                    _ui->stepButton->setEnabled(false);
                     _thread.start();
                 }
             break;
@@ -568,6 +573,7 @@ void MainWindow::nextStep()
 
 void MainWindow::drawStep()
 {
+    _ui->stepButton->setEnabled(true);
     disconnectEverything();
     stringstream ss;
     QString message;

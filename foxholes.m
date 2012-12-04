@@ -22,17 +22,17 @@ switch nargin
 			];
 
 		tmp = 0;
-		for i = 1:24
+		for i = 1:25
 			tmp2 = 0;
 			for j = 1:2
 				tmp2 = tmp2 + (x(j) - a(j,i)).^6;
 			end
-			tmp = tmp + 1 / (i + tmp2);
+			tmp = tmp + (1 / (i + tmp2));
 		end
-		y = 0.002 + tmp;
-        y = 119.988 - tmp;
         y = tmp;
-		y = 1 / (0.002 + tmp);
+        y = 119.988 - tmp;
+		y = 0.002 + tmp;
+		y = -(1 / (0.002 + tmp));
 		
 		if nargin == 1 || ~noPause
 			pause(0.05);

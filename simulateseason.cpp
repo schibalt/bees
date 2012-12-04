@@ -557,7 +557,7 @@ void WorkerBee::recruit()
     int prioritized = _priorityBees.size();
 
     //recruits + priority bees + elite bees
-    int remainder = _bees.size() - scouts - elites - prioritized;
+    int remainder = _bees.size() /*- scouts*/ - elites - prioritized;
 
     //weight the numbers of bees at pri. + elite sites
     double eliteWeight = elites * _eliteWeight;

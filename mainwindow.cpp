@@ -482,8 +482,8 @@ void MainWindow::nextStep()
 
     if (_day < seasonLength)
     {
-        //qDebug() << "step " << _step << " of ";
-       // qDebug() << "day " << _day;
+        qDebug() << "step " << _step << " of ";
+        qDebug() << "day " << _day;
         QString message;
 
         switch (_step)
@@ -529,7 +529,7 @@ void MainWindow::nextStep()
 
                     message = "Recruiting bees";
 
-                    _ui->stepButton->setEnabled(false);
+                   // _ui->stepButton->setEnabled(false);
                     _thread.start();
 
                     _ui->statusBar->showMessage(message);
@@ -553,7 +553,11 @@ void MainWindow::nextStep()
                 break;
             case 3:
                 {
+                    if(_day == _ui->genCap->value() - 1)
+                        break;
+
                     _workerBee.newGenMembers(_thread);
+
                     QObject::connect(&_workerBee, SIGNAL(regenerated()), this, SLOT(drawStep()), Qt::UniqueConnection);
 
                     if (!_ui->stepBox->isChecked())
@@ -609,9 +613,12 @@ void MainWindow::drawStep()
             break;
 
         case 3:
+
+
             ss << "Colony regenerated for step " << _step << " of day " << _day;
             message = message.fromStdString(ss.str());
             _ui->statusBar->showMessage(message);
+
             initialDraw();
             break;
 

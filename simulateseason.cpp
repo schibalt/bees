@@ -391,13 +391,14 @@ void WorkerBee::evaluateFitnesses()
         beeI = bee->getPoint().y();
         distance = sqrt(pow(beeJ - hiveJ, 2) + pow(beeI - hiveI, 2));
         fieldPtQuality = _field[beeI][beeJ];
-
+qDebug() << "distance penalty is " << _distancePenalty;
         double weightedDistance = _distancePenalty * distance;
+        qDebug() << "weightedDistance penalty is " << weightedDistance;
 
         if (weightedDistance < 1)
             weightedDistance = 1;
 
-        fitness = fieldPtQuality / weightedDistance;
+        fitness = fieldPtQuality * weightedDistance;
         //qDebug() << "bee " << inc << " fitness is " << fitness;
 
         bee->setFitness(fitness);

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Tue Dec 4 01:05:08 2012
+** Created: Tue Dec 4 12:35:01 2012
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -92,7 +92,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(900, 688);
+        MainWindow->resize(900, 722);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -182,7 +182,7 @@ public:
         genCap->setObjectName(QString::fromUtf8("genCap"));
         genCap->setMinimum(1);
         genCap->setMaximum(999);
-        genCap->setValue(150);
+        genCap->setValue(15);
 
         gridLayout_4->addWidget(genCap, 0, 1, 1, 1);
 

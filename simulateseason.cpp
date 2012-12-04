@@ -32,7 +32,7 @@ void WorkerBee::disconnectEverything(QThread& thread)
     disconnect(this, SIGNAL(quitNeighborFitEvalThread()), &thread, SLOT(quit()));
 
     //new gen
-    disconnect(&thread, SIGNAL(started()), this, SLOT(regenerated()));
+    disconnect(&thread, SIGNAL(started()), this, SLOT(regenerate()));
     disconnect(this, SIGNAL(quitRegenThread()), &thread, SLOT(quit()));
 }
 
@@ -437,14 +437,14 @@ void WorkerBee::selectSites()
 
         (*i).setRole(Bee::PRIORITY);
         _priorityBees.push_back(&(*i));
-        qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
+     //  qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
     }
 
     for (vector<Bee >::iterator i = _bees.end() - 1; i != _bees.end() - eliteOffset; --i)
     {
         (*i).setRole(Bee::ELITE);
         _eliteBees.push_back(&(*i));
-        qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+      //  qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
     }
     emit quitSiteSelectThread();
     emit sitesSelected();
@@ -736,7 +736,61 @@ void WorkerBee::newGenMembers(QThread& thread)
 
 void WorkerBee::regenerate()
 {
+    _bees.clear();
+    Bee bee;
 
+    for (vector<vector<Bee* > >::iterator i = _eliteNeighborhoods.begin();
+         i != _eliteNeighborhoods.end(); ++i)
+    {
+        for (vector<Bee* >::iterator j = (*i).begin() + 1; j != (*i).begin() + 2; ++j)
+        {
+            bee = (*(*j));
+            _bees.push_back(bee);
+        }
+    }
+
+    //for all the elite neighborhoods
+    for (vector<vector<Bee* > >::iterator i = _priorityNeighborhoods.begin();
+         i != _priorityNeighborhoods.end(); ++i)
+    {
+        for (vector<Bee* >::iterator j = (*i).begin() + 1; j != (*i).begin() + 2; ++j)
+        {
+            bee = (*(*j));
+            _bees.push_back(bee);
+        }
+    }
+
+    for (int i = _bees.size(); i < _population; i++)
+    {
+        Bee newBee(_fieldDims);
+        _bees.push_back(newBee);
+    }
+    qDebug() << "evaluating new gen fitnesses";
+    int beeJ;
+    int beeI;
+
+    int hiveJ = _hive.getPoint().x();
+    int hiveI = _hive.getPoint().y();
+
+    double fieldPtQuality;
+    double distance;
+    double fitness;
+    int inc = 0;
+
+    for (vector<Bee >::iterator i = _bees.begin(); i != _bees.end(); ++i)
+    {
+        beeJ = (*i).getPoint().x();
+        beeI = (*i).getPoint().y();
+        distance = sqrt(pow(beeJ - hiveJ, 2) + pow(beeI - hiveI, 2));
+        fieldPtQuality = _field[beeI][beeJ];
+
+        fitness = fieldPtQuality / distance;
+        //qDebug() << "bee " << inc << " fitness is " << fitness;
+
+        (*i).setFitness(fitness);
+        ++inc;
+    }
+    sort(_bees.begin(), _bees.end());
 
     emit quitRegenThread();
     emit regenerated();

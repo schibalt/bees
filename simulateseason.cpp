@@ -371,7 +371,7 @@ void WorkerBee::setFitnessEvalMembers(QThread& thread, double distancePenalty)
 
 void WorkerBee::evaluateFitnesses()
 {
-   // qDebug() << "evaluating fitnesses";
+    // qDebug() << "evaluating fitnesses";
     int beeJ;
     int beeI;
 
@@ -407,7 +407,6 @@ void WorkerBee::evaluateFitnesses()
     reverse(_bees.begin(), _bees.end());
 
     /*
-    */
     inc = 0;
 
     foreach(Bee bee, _bees)
@@ -416,13 +415,18 @@ void WorkerBee::evaluateFitnesses()
 
         ++inc;
     }
+    */
 
     emit quitFitEvalThread();
     emit fitnessesEvaluated();
 }
 
-void WorkerBee::setSiteSelectionMembers(QThread& thread, int sites, int eliteSites)
+void WorkerBee::setSiteSelectionMembers(QThread& thread, int sites, int eliteSites,
+                                        double deltaLambda,
+                                        double deltaPhi)
 {
+    _deltaLambda = deltaLambda;
+    _deltaPhi = deltaPhi;
     disconnectEverything(thread);
 
     connect(&thread, SIGNAL(started()), this, SLOT(selectSites()), Qt::UniqueConnection);
@@ -437,22 +441,84 @@ void WorkerBee::selectSites()
     _priorityBees.clear();
     _eliteBees.clear();
 
-    //Bee* bee;
-    
-    for (vector<Bee >::iterator i = _bees.begin(); i != _bees.begin() + _eliteSites; ++i)
+    Bee* bee;
+
+    int fieldWidth = _fieldDims.width();
+    int fieldHeight = _fieldDims.height();
+
+    int deltaLambda = fieldWidth * _deltaLambda;
+    deltaLambda /= 100;
+    int deltaPhi = fieldHeight * _deltaPhi;
+    deltaPhi /= 100;
+
+    int prevBeeX ;
+    int prevBeeY;
+
+    unsigned int inc = 0;
+
+    while (_eliteBees.size() < _eliteSites)
     {
-        (*i).setRole(Bee::ELITE);
-        _eliteBees.push_back(&(*i));
-      //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
+        bee = &_bees[inc];
+
+        if (_eliteBees.size() > 0 || inc >= _bees.size() - _sites + _eliteBees.size())
+        {
+            prevBeeX = _eliteBees.back()->getPoint().x();
+            prevBeeY = _eliteBees.back()->getPoint().y();
+
+            if (bee->getPoint().x() < prevBeeX + deltaLambda
+                && bee->getPoint().x() > prevBeeX - deltaLambda
+                && bee->getPoint().y() > prevBeeY - deltaPhi
+                && bee->getPoint().y() < prevBeeY  + deltaPhi)
+            {
+                ++inc;
+                continue;
+            }
+            else
+            {
+                bee->setRole(Bee::ELITE);
+                _eliteBees.push_back(bee);
+            }
+        }
+        else
+        {
+            bee->setRole(Bee::ELITE);
+            _eliteBees.push_back(bee);
+        }
+        ++inc;
+        //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at an elite site";
     }
 
-    for (vector<Bee >::iterator i = _bees.begin() + _eliteSites;
-         i != _bees.begin() + _eliteSites + _sites; ++i)
+    while (_priorityBees.size() < _sites - _eliteSites)
     {
+        bee = &_bees[inc];
 
-        (*i).setRole(Bee::PRIORITY);
-        _priorityBees.push_back(&(*i));
-      //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
+        if (_priorityBees.size() > 0
+            || inc >= _bees.size() - _sites + (_eliteBees.size() + _priorityBees.size()))
+        {
+            prevBeeX = _priorityBees.back()->getPoint().x();
+            prevBeeY = _priorityBees.back()->getPoint().y();
+
+            if (bee->getPoint().x() < prevBeeX + deltaLambda
+                && bee->getPoint().x() > prevBeeX - deltaLambda
+                && bee->getPoint().y() > prevBeeY - deltaPhi
+                && bee->getPoint().y() < prevBeeY  + deltaPhi)
+            {
+                ++inc;
+                continue;
+            }
+            else
+            {
+                bee->setRole(Bee::PRIORITY);
+                _priorityBees.push_back(bee);
+            }
+        }
+        else
+        {
+            bee->setRole(Bee::PRIORITY);
+            _priorityBees.push_back(bee);
+        }
+        ++inc;
+        //    qDebug() << "bee with fitness " << (*i).getFitness() << " is at a priority site";
     }
     emit quitSiteSelectThread();
     emit sitesSelected();

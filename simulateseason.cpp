@@ -737,9 +737,11 @@ void WorkerBee::evalNeighborFits()
     {
         inc = 0;
 
+        sort((*i).begin(), (*i).end(), compareBees());
+        reverse((*i).begin(), (*i).end());
+        /*
         sort((*i).begin() + 1, (*i).end(), compareBees());
         reverse((*i).begin() + 1, (*i).end());
-        /*
         */
         for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
         {
@@ -747,7 +749,7 @@ void WorkerBee::evalNeighborFits()
             //  qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
             //           << " in elite neighborhood " << elite;
 
-            if (j == (*i).begin() + 1)
+            if (j == (*i).begin() )
             {
                 //    qDebug() << " and is the fittest neighbor";
                 bee->setRole(Bee::PRIORITY);
@@ -771,9 +773,11 @@ void WorkerBee::evalNeighborFits()
     {
         inc = 0;
 
+        sort((*i).begin(), (*i).end(), compareBees());
+        reverse((*i).begin(), (*i).end());
+        /*
         sort((*i).begin() + 1, (*i).end(), compareBees());
         reverse((*i).begin() + 1, (*i).end());
-        /*
         */
 
         for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).end(); ++j)
@@ -782,7 +786,7 @@ void WorkerBee::evalNeighborFits()
             // qDebug() << "bee " << inc << " fitness is " << bee->getFitness()
             //          << " in priority neighborhood " << prior;
 
-            if (j == (*i).begin() + 1)
+            if (j == (*i).begin())
             {
                 bee->setRole(Bee::PRIORITY);
                 //    qDebug() << " and is the fittest neighbor";
@@ -824,7 +828,7 @@ void WorkerBee::regenerate()
     for (vector<vector<Bee* > >::iterator i = _eliteNeighborhoods.begin();
          i != _eliteNeighborhoods.end(); ++i)
     {
-        for (vector<Bee* >::iterator j = (*i).begin() + 1; j != (*i).begin() + 2; ++j)
+        for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).begin() + 1; ++j)
         {
             bee = (*(*j));
             _bees.push_back(bee);
@@ -835,18 +839,18 @@ void WorkerBee::regenerate()
     for (vector<vector<Bee* > >::iterator i = _priorityNeighborhoods.begin();
          i != _priorityNeighborhoods.end(); ++i)
     {
-        for (vector<Bee* >::iterator j = (*i).begin() + 1; j != (*i).begin() + 2; ++j)
+        for (vector<Bee* >::iterator j = (*i).begin(); j != (*i).begin() + 1; ++j)
         {
             bee = (*(*j));
             _bees.push_back(bee);
         }
     }
-    evaluateFitnesses();
     for (int i = _bees.size(); i < _population; i++)
     {
         Bee newBee(_fieldDims);
         _bees.push_back(newBee);
     }
+    evaluateFitnesses();
     /*
     qDebug() << "evaluating new gen fitnesses";
     int beeJ;
